@@ -5,21 +5,6 @@ project(obdvg C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# Add libs folder (which imports pico-sdk and FreeRTOS)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs)
-
-# Define executable
-add_executable(obdvg
-    app/main.cpp
-)
-
-# Pico SDK Configuration
-set(PICO_BOARD pico2)
-
-include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
-
-pico_sdk_init()
-
 # FreeRTOSConfig.h Configuration
 add_library(freertos_config INTERFACE)
 
@@ -33,14 +18,26 @@ target_compile_definitions(freertos_config
     projCOVERAGE_TEST=0
 )
 
-# FreeRTOS Configuration
-set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
-# Select the native compile PORT
-set( FREERTOS_PORT "GCC_POSIX" CACHE STRING "" FORCE)
-# Select the cross-compile PORT
-if (CMAKE_CROSSCOMPILING)
-  set(FREERTOS_PORT "RP2350" CACHE STRING "" FORCE)
-endif()
+# Tell CMake where the Pico SDK is
+set(PICO_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
+
+# Add Pico SDK directory
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
+
+# Add FreeRTOS directory
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs//FreeRTOS-Kernel)
+
+# Define executable
+add_executable(obdvg
+    app/main.cpp
+)
+
+# Pico SDK Configuration
+set(PICO_BOARD pico2_w)
+
+include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+
+pico_sdk_init()
 
 # Include headers
 target_include_directories(obdvg PRIVATE
