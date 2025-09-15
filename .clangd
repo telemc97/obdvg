@@ -1,0 +1,15 @@
+CompileFlags:
+  CompilationDatabase: ./build
+  Compiler: arm-none-eabi-g++
+
+Index:
+  StandardLibrary: true
+  Background: Build
+
+Diagnostics:
+  UnusedIncludes: None
+  ClangTidy:
+    FastCheckFilter: Loose
+
+Hover:
+  ShowAKA: false

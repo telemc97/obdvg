@@ -1,1 +1,7 @@
+# Cmake Relative
 build
+.cache
+
+# Lib related .cmake
+FreeRTOS_Kernel_import.cmake
+pico_sdk_import.cmake

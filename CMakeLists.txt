@@ -1,55 +1,67 @@
 cmake_minimum_required(VERSION 3.13)
 
+# pico-sdk before project
+# Setting variables
+set(PICO_BOARD pico2_w)
+set(PICO_PLATFORM rp2350)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
+set(PICO_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
+include(pico_sdk_import.cmake)
+
 project(obdvg C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# FreeRTOSConfig.h Configuration
-add_library(freertos_config INTERFACE)
+set(CMAKE_CROSSCOMPILING TRUE)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# freeRTOS
+# Setting variables and FreeRTOSConfig.h
+set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
+set( FREERTOS_PORT "GCC_POSIX" CACHE STRING "" FORCE)
+if (CMAKE_CROSSCOMPILING)
+  set(FREERTOS_PORT "GCC_ARM_CA9" CACHE STRING "" FORCE)
+endif()
+add_library(freertos_config INTERFACE)
 target_include_directories(freertos_config SYSTEM
 INTERFACE
     include
 )
-
 target_compile_definitions(freertos_config
   INTERFACE
     projCOVERAGE_TEST=0
 )
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/FreeRTOS-Kernel)
+set(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/FreeRTOS-Kernel)
+include(FreeRTOS_Kernel_import.cmake)
 
-# Tell CMake where the Pico SDK is
-set(PICO_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
-
-# Add Pico SDK directory
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
-
-# Add FreeRTOS directory
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs//FreeRTOS-Kernel)
-
-# Define executable
-add_executable(obdvg
-    app/main.cpp
-)
 
 # Pico SDK Configuration
-set(PICO_BOARD pico2_w)
-
-include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
-
 pico_sdk_init()
+
+file(GLOB obdvg_MAIN CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/app/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/src/**/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/src/FreeRTOSHooks.c"
+
+)
+# Define executable
+add_executable(obdvg
+    ${obdvg_MAIN}
+    
+)
 
 # Include headers
 target_include_directories(obdvg PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
-set(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/FreeRTOS-Kernel)
+target_include_directories(obdvg SYSTEM PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/libs/FreeRTOS-Kernel
+    ${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk
+)
 
-# Include FreeRTOS
-include(FreeRTOS_Kernel_import.cmake)
-
-# Link with Pico SDK + FreeRTOS
 target_link_libraries(obdvg
     pico_stdlib
     FreeRTOS-Kernel
@@ -59,6 +71,3 @@ target_link_libraries(obdvg
 # Enable USB/serial stdio
 pico_enable_stdio_usb(obdvg 1)
 pico_enable_stdio_uart(obdvg 0)
-
-# Generate UF2, bin, etc.
-pico_add_extra_outputs(obdvg)

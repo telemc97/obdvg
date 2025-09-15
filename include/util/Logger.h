@@ -1,13 +1,35 @@
 #pragma once
-#include <cstdio>
+#include "Types.h"
+
+#include <string>
+
+// Simple log levels
+enum class LogLevel {
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR
+};
 
 class Logger {
+public:
+    Logger();
     
-    public:
-        template<typename... Args>
+    // Initialize the logger (must be called once before use)
+    void init(LogLevel level = LogLevel::INFO);
 
-        static void info(const char* fmt, Args... args) {
-            printf(fmt, args...);
-            printf("\n");
-        }
+    // Logging functions
+    void log(LogLevel level, const String& msg) const;
+    void debug(const String& msg) const;
+    void info(const String& msg) const;
+    void warn(const String& msg) const;
+    void error(const String& msg) const;
+
+    // Set log level at runtime
+    void setLevel(LogLevel level);
+
+private:
+    static void printPrefix(LogLevel level);
+
+    LogLevel currentLevel;
 };

@@ -1,9 +1,10 @@
 #pragma once
-#include <cstdint>
+#include "Types.h"
+
 #include <array>
 
 struct CanFrame {
-    uint32_t id{0};
-    uint8_t dlc{0};
-    std::array<uint8_t, 8> data{};
+    uint32 id{0};
+    uint8 dlc{0};
+    Array(uint8, 8) data{};
 };

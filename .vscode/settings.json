@@ -1,0 +1,25 @@
+{
+    "cmake.configureOnOpen": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.formatting": "disabled",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": false,
+    "editor.inlayHints.enabled": "on",
+
+    "files.associations": {
+        "__bit_reference": "cpp",
+        "__node_handle": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "limits": "cpp",
+        "locale": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp",
+        "vector": "cpp",
+        "regex": "cpp"
+    }
+}
