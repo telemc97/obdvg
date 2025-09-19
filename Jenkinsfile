@@ -20,8 +20,8 @@ pipeline {
         stage('Install CMake') {
             steps {
                 sh '''
-                    sudo apt-get update -y
-                    sudo apt-get install -y cmake
+                    apt-get update -y
+                    apt-get install -y cmake
                 '''
             }
         }
