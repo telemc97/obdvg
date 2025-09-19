@@ -40,7 +40,7 @@ pipeline {
         stage('Copy FreeRTOS CMake File') {
             steps {
                 script {
-                    sh 'cp libs/FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake ./'
+                    sh 'cp ./libs/FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake ./'
                 }
             }
         }
@@ -48,7 +48,7 @@ pipeline {
         stage('Copy Pico SDK CMake File') {
             steps {
                 script {
-                    sh 'cp libs/pico-sdk/external/pico_sdk_import.cmake ./'
+                    sh 'cp ./libs/pico-sdk/external/pico_sdk_import.cmake ./'
                 }
             }
         }
