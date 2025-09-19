@@ -13,19 +13,6 @@ pipeline {
 
     stages {
 
-        stage('Clean Workspace') {
-            when {
-                expression { params.CLEAN_WORKSPACE }
-            }
-            steps {
-                cleanWs(
-                    deleteDirs: true,
-                    notFailBuild: true,
-                    patterns: [[pattern: '.git*/**', type: 'EXCLUDE']]
-                )
-            }
-        }
-
         stage('Install CMake') {
             steps {
                 sh '''
