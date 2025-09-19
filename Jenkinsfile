@@ -1,6 +1,12 @@
 pipeline {
     agent { label 'control_node_agent0' }
 
+    environment {
+        CMAKE_VERSION = '3.28.3'
+        CMAKE_BIN_DIR = "${WORKSPACE}/cmake/bin"
+        PATH = "${WORKSPACE}/cmake/bin:${env.PATH}"
+    }
+
     parameters {
         booleanParam(name: 'CLEAN_WORKSPACE', defaultValue: false, description: 'Clean the workspace before build')
     }
@@ -20,22 +26,10 @@ pipeline {
         stage('Install CMake') {
             steps {
                 sh '''
-                    set -e
-                    CMAKE_VERSION=3.28.3
-
-                    # prepare install location
                     mkdir -p $WORKSPACE/cmake
-
-                    # download and install
                     curl -LO https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
                     chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
                     ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix=$WORKSPACE/cmake
-
-                    # adjust PATH for subsequent stages
-                    echo "export PATH=$WORKSPACE/cmake/bin:\$PATH" >> $WORKSPACE/.envrc
-                    export PATH=$WORKSPACE/cmake/bin:$PATH
-
-                    cmake --version
                 '''
             }
         }
