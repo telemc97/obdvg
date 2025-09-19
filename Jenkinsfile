@@ -20,8 +20,12 @@ pipeline {
         stage('Install CMake') {
             steps {
                 sh '''
-                    apt-get update -y
-                    apt-get install -y cmake
+                    CMAKE_VERSION=3.28.3
+                    curl -LO https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
+                    chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
+                    ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix=$WORKSPACE/cmake
+                    export PATH=$WORKSPACE/cmake/bin:$PATH
+                    cmake --version
                 '''
             }
         }
