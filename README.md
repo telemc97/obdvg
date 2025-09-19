@@ -1,6 +1,6 @@
 # OBDvg
 
-[![Build Status](http://jenkins.tilhouse.lan/job/obdvg_sw/badge/icon)](http://jenkins.tilhouse.lan/job/obdvg_sw/)
+[![Build Status](http://jenkins.tilhouse.lan/buildStatus/icon?job=obdvg_sw)](http://jenkins.tilhouse.lan/job/obdvg_sw/)
 
 ### General Project Description
 
