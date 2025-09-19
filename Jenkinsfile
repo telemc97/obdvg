@@ -18,8 +18,11 @@ pipeline {
                 expression { params.CLEAN_WORKSPACE }
             }
             steps {
-                echo 'Cleaning workspace...'
-                deleteDir()
+                cleanWs(
+                    deleteDirs: true,
+                    notFailBuild: true,
+                    patterns: [[pattern: '.git*/**', type: 'EXCLUDE']]
+                )
             }
         }
 
@@ -76,7 +79,7 @@ pipeline {
             steps {
                 script {
                     // Run CMake to configure the project
-                    sh 'cd build && cmake ..'
+                    sh 'cmake -B build'
                 }
             }
         }
@@ -85,7 +88,7 @@ pipeline {
             steps {
                 script {
                     // Compile the project
-                    sh 'cd build && make'
+                    sh 'cmake --build build'
                 }
             }
         }
