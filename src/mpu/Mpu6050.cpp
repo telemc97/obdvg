@@ -16,7 +16,7 @@ static constexpr uint8 ACCEL_CONFIG = 0x1C;
 static constexpr uint8 GYRO_CONFIG  = 0x1B;
 static constexpr uint8 WHO_AM_I     = 0x75;
 
-Mpu6050::Mpu6050(i2c_inst_t* i2c_instance, uint8 i2c_address)
+Mpu6050::Mpu6050(i2c_inst_t* i2c_instance, const uint8 i2c_address)
     : i2c(i2c_instance), address(i2c_address) {}
 
 // --------------------------------------------------
@@ -45,7 +45,7 @@ boolean Mpu6050::begin() {
 // --------------------------------------------------
 // Read data
 // --------------------------------------------------
-boolean Mpu6050::readData(Mpu6050Data& data) {
+boolean Mpu6050::readData(Mpu6050Data& data) const {
     uint8 buffer[14];
     if (!readRegisters(ACCEL_XOUT_H, buffer, 14)) {
         return false;
@@ -114,12 +114,12 @@ void Mpu6050::setGyroOffsets(float32 x, float32 y, float32 z) {
     gyroOffsetZ = z;
 }
 
-void Mpu6050::calibrate(uint16_t samples) {
+void Mpu6050::calibrate(uint16 samples) {
     float32 ax = 0, ay = 0, az = 0;
     float32 gx = 0, gy = 0, gz = 0;
 
-    Mpu6050Data d;
-    for (uint16_t i = 0; i < samples; i++) {
+    Mpu6050Data d{};
+    for (uint16 i = 0; i < samples; i++) {
         if (readData(d)) {
             ax += d.accel_x;
             ay += d.accel_y;
@@ -136,7 +136,7 @@ void Mpu6050::calibrate(uint16_t samples) {
 }
 
 static uint32 calcChecksum(const CalibrationData &d) {
-    const uint32 *p = reinterpret_cast<const uint32*>(&d);
+    const auto *p = reinterpret_cast<const uint32*>(&d);
     uint32 sum = 0;
     for (size_t i = 0; i < (sizeof(CalibrationData)/4) - 1; i++) {
         sum ^= p[i];
@@ -147,7 +147,7 @@ static uint32 calcChecksum(const CalibrationData &d) {
 // --------------------------------------------------
 // Persistent storage (stubbed: depends on your platform)
 // --------------------------------------------------
-void Mpu6050::saveCalibration() {
+void Mpu6050::saveCalibration() const {
     CalibrationData data {
         accelOffsetX, accelOffsetY, accelOffsetZ,
         gyroOffsetX, gyroOffsetY, gyroOffsetZ,
@@ -164,7 +164,7 @@ void Mpu6050::saveCalibration() {
 }
 
 boolean Mpu6050::loadCalibration() {
-    const CalibrationData* data =
+    const auto* data =
         reinterpret_cast<const CalibrationData*>(XIP_BASE + CALIBRATION_FLASH_OFFSET);
 
     if (data->checksum != calcChecksum(*data)) {
@@ -184,25 +184,25 @@ boolean Mpu6050::loadCalibration() {
 // --------------------------------------------------
 // Helpers
 // --------------------------------------------------
-boolean Mpu6050::writeRegister(uint8 reg, uint8 value) {
+boolean Mpu6050::writeRegister(const uint8 reg, const uint8 value) const {
     uint8 buf[2] = {reg, value};
     return i2c_write_blocking(i2c, address, buf, 2, false) == 2;
 }
 
-boolean Mpu6050::readRegisters(uint8 reg, uint8* buffer, uint8 length) {
+boolean Mpu6050::readRegisters(const uint8 reg, uint8* buffer, const uint8 length) const {
     if (i2c_write_blocking(i2c, address, &reg, 1, true) != 1) return false;
     return i2c_read_blocking(i2c, address, buffer, length, false) == length;
 }
 
-float32 Mpu6050::accelRawToG(int16 raw) {
+float32 Mpu6050::accelRawToG(const int16 raw) const {
     return static_cast<float32>(raw) / accelScale;
 }
 
-float32 Mpu6050::gyroRawToDps(int16 raw) {
+float32 Mpu6050::gyroRawToDps(const int16 raw) const {
     return static_cast<float32>(raw) / gyroScale;
 }
 
-float32 Mpu6050::tempRawToC(int16 raw) {
+float32 Mpu6050::tempRawToC(const int16 raw) {
     // From datasheet: Temp in °C = (raw / 340.0) + 36.53
     return (static_cast<float32>(raw) / 340.0f) + 36.53f;
 }

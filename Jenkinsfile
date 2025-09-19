@@ -17,6 +17,15 @@ pipeline {
             }
         }
 
+        stage('Install CMake') {
+            steps {
+                sh '''
+                    sudo apt-get update -y
+                    sudo apt-get install -y cmake
+                '''
+            }
+        }
+
         stage('Initialize Submodules') {
             steps {
                 script {

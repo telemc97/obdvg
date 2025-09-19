@@ -48,7 +48,7 @@ public:
     explicit Mpu6050(i2c_inst_t* i2c_instance, uint8 i2c_address = 0x68);
 
     boolean begin();
-    boolean readData(Mpu6050Data&);
+    boolean readData(Mpu6050Data&) const;
 
     boolean setAccelRange(AccelRange range);
     boolean setGyroRange(GyroRange range);
@@ -56,10 +56,10 @@ public:
     // Calibration
     void setAccelOffsets(float32 x, float32 y, float32 z);
     void setGyroOffsets(float32 x, float32 y, float32 z);
-    void calibrate(uint16_t samples = 1000);
+    void calibrate(uint16 samples = 1000);
 
     // Persistent storage
-    void saveCalibration();
+    void saveCalibration() const;
     boolean loadCalibration();
 
 private:
@@ -72,12 +72,12 @@ private:
     float32 accelOffsetX = 0, accelOffsetY = 0, accelOffsetZ = 0;
     float32 gyroOffsetX  = 0, gyroOffsetY  = 0, gyroOffsetZ  = 0;
 
-    boolean writeRegister(uint8 reg, uint8 value);
-    boolean readRegisters(uint8 reg, uint8* buffer, uint8 length);
+    boolean writeRegister(uint8 reg, uint8 value) const;
+    boolean readRegisters(uint8 reg, uint8* buffer, uint8 length) const;
 
-    float32 accelRawToG(int16 raw);
-    float32 gyroRawToDps(int16 raw);
-    float32 tempRawToC(int16 raw);
+    float32 accelRawToG(int16 raw) const;
+    float32 gyroRawToDps(int16 raw) const;
+    static float32 tempRawToC(int16 raw);
 };
 
 #endif //OBDVG_MPU6050_H
