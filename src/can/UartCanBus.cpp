@@ -16,7 +16,7 @@ UartCanBus::UartCanBus(uart_inst_t* uart, const uint8 txPin, const uint8 rxPin, 
     gpio_set_function(rxPin, GPIO_FUNC_UART);
 }
 
-bool UartCanBus::send(const CanFrame& frame) const {
+boolean UartCanBus::send(const CanFrame& frame) const {
     char buffer[32];
     int len = snprintf(buffer, sizeof(buffer), "t%03X%d", frame.id, frame.dlc);
     for (int i = 0; i < frame.dlc; i++) {
@@ -27,7 +27,7 @@ bool UartCanBus::send(const CanFrame& frame) const {
     return true;
 }
 
-bool UartCanBus::receive(CanFrame& frame) const {
+boolean UartCanBus::receive(CanFrame& frame) const {
     static char rxBuf[32];
     static int idx = 0;
 
@@ -42,7 +42,7 @@ bool UartCanBus::receive(CanFrame& frame) const {
             for (int i = 0; i < frame.dlc; i++) {
                 unsigned val;
                 sscanf(rxBuf + 5 + i*2, "%2X", &val);
-                frame.data[i] = static_cast<uint8_t>(val);
+                frame.data[i] = static_cast<uint8>(val);
             }
             return true;
         }

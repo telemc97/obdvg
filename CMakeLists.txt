@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.13)
 # Setting variables
 set(PICO_BOARD pico2_w)
 set(PICO_PLATFORM rp2350)
+set(PICO_FLASH_SIZE 2048)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
 set(PICO_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/pico-sdk)
 include(pico_sdk_import.cmake)
@@ -49,7 +50,6 @@ file(GLOB obdvg_MAIN CONFIGURE_DEPENDS
 # Define executable
 add_executable(obdvg
     ${obdvg_MAIN}
-    
 )
 
 # Include headers
@@ -64,6 +64,8 @@ target_include_directories(obdvg SYSTEM PRIVATE
 
 target_link_libraries(obdvg
     pico_stdlib
+    hardware_i2c     # <-- I²C support
+    hardware_gpio    # (optional, usually pulled automatically)
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
 )
