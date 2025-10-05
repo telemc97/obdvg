@@ -1,15 +1,10 @@
-//
-// Created by Tilemahos Mitroudas on 18/9/25.
-//
-
 #ifndef OBDVG_MPU6050_H
 #define OBDVG_MPU6050_H
-
-#pragma once
 
 #include "Types.h"
 
 #include <cstdint>
+
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 
@@ -48,7 +43,8 @@ public:
     explicit Mpu6050(i2c_inst_t* i2c_instance, uint8 i2c_address = 0x68);
 
     boolean begin();
-    boolean readData(Mpu6050Data&) const;
+    boolean isConnected() const;
+    boolean readData(Mpu6050Data&);
 
     boolean setAccelRange(AccelRange range);
     boolean setGyroRange(GyroRange range);
@@ -56,10 +52,16 @@ public:
     // Calibration
     void setAccelOffsets(float32 x, float32 y, float32 z);
     void setGyroOffsets(float32 x, float32 y, float32 z);
+    /**
+     * @brief Calibrates the sensor by reading a number of samples and calculating the offsets.
+     * 
+     * @param samples The number of samples to read for calibration.
+     * @note This method assumes that the sensor is placed on a flat surface.
+     */
     void calibrate(uint16 samples = 1000);
 
     // Persistent storage
-    void saveCalibration() const;
+    void saveCalibration();
     boolean loadCalibration();
 
 private:

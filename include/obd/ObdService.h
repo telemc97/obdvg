@@ -1,7 +1,13 @@
-#pragma once
+#ifndef OBDVG_OBDSERVICE_H
+#define OBDVG_OBDSERVICE_H
 
-#include "can/CanFrame.h"
+#include "Types.h"
+
+// External includes
 #include <cstdint>
+
+// Internal includes
+#include "can/CanFrame.h"
 
 class ObdService {
     
@@ -12,3 +18,5 @@ class ObdService {
     private:
         static bool isValidResponse(const CanFrame& frame, uint8 requestedPid);
 };
+
+#endif //OBDVG_OBDSERVICE_H

@@ -1,17 +1,18 @@
-#include "obd/ObdService.h"
-#include "obd/ObdPids.h"
-#include "obd/PidDecoder.h"
-
-#include "can/CanFrame.h"
+#include "Types.h"
 
 #include <cstring>
 
+#include "can/CanFrame.h"
+#include "obd/ObdPids.h"
+#include "obd/ObdService.h"
+#include "obd/PidDecoder.h"
+
 void ObdService::buildCanFrameForPID(uint8 const pid, CanFrame &tx) {
-  tx.id = 0x7DF; // functional broadcast
+  tx.id = 0x7DF;
   tx.dlc = 8;
   std::memset(tx.data.data(), 0, 8);
-  tx.data[0] = 0x02; // length
-  tx.data[1] = 0x01; // service 01
+  tx.data[0] = 0x02;
+  tx.data[1] = 0x01;
   tx.data[2] = pid;
 }
 

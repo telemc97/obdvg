@@ -1,10 +1,9 @@
+#include "Types.h"
+
+#include "Config.h"
 #include "util/Logger.h"
 
-Logger::Logger() : currentLevel(LogLevel::INFO) {}
-
-void Logger::init(const LogLevel level) {
-  currentLevel = level;
-}
+Logger::Logger() : currentLevel(Config::LOG_LEVEL) {}
 
 void Logger::setLevel(const LogLevel level) { currentLevel = level; }
 
@@ -31,8 +30,3 @@ void Logger::log(const LogLevel level, const String &msg) const {
   printPrefix(level);
   printf("%s\n", msg.c_str());
 }
-
-void Logger::debug(const String &msg) const { log(LogLevel::DEBUG, msg); }
-void Logger::info(const String &msg) const { log(LogLevel::INFO, msg); }
-void Logger::warn(const String &msg) const { log(LogLevel::WARN, msg); }
-void Logger::error(const String &msg) const { log(LogLevel::ERROR, msg); }

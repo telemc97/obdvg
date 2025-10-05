@@ -1,4 +1,6 @@
-#pragma once
+#ifndef OBDVG_LOGGER_H
+#define OBDVG_LOGGER_H
+
 #include "Types.h"
 
 #include <string>
@@ -13,23 +15,18 @@ enum class LogLevel {
 
 class Logger {
 public:
-    Logger();
-    
-    // Initialize the logger (must be called once before use)
-    void init(LogLevel level = LogLevel::INFO);
+    static Logger& instance() {
+        static Logger logger;
+        return logger;
+    }
 
-    // Logging functions
-    void log(LogLevel level, const String& msg) const;
-    void debug(const String& msg) const;
-    void info(const String& msg) const;
-    void warn(const String& msg) const;
-    void error(const String& msg) const;
-
-    // Set log level at runtime
     void setLevel(LogLevel level);
+    void log(LogLevel level, const String& msg) const;
 
 private:
+    Logger();
     static void printPrefix(LogLevel level);
-
     LogLevel currentLevel;
 };
+
+#endif //OBDVG_LOGGER_H

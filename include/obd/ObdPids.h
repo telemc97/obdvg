@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OBDVG_OBDPIDS_H
+#define OBDVG_OBDPIDS_H
 
 #define PID_ENGINE_RPM          0x0C
 #define PID_VEHICLE_SPEED       0x0D
@@ -15,3 +16,5 @@
 #define PID_O2_SENSOR_1         0x14
 #define PID_O2_SENSOR_2         0x15
 #define PID_RUNTIME_SINCE_START 0x1F
+
+#endif //OBDVG_OBDPIDS_H

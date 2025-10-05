@@ -1,11 +1,14 @@
-#include "mpu/Mpu6050.h"
+#include "Types.h"
+
+#include <cstdio>
 
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 
-#include <cstdio>
+#include "mpu/Mpu6050.h"
+#include "util/Logger.h"
 
-#define CALIBRATION_FLASH_OFFSET (PICO_FLASH_SIZE_BYTES - 4096) // last 4 KB
+#define CALIBRATION_FLASH_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 
 // MPU6050 register map
 static constexpr uint8 PWR_MGMT_1   = 0x6B;
@@ -16,23 +19,26 @@ static constexpr uint8 ACCEL_CONFIG = 0x1C;
 static constexpr uint8 GYRO_CONFIG  = 0x1B;
 static constexpr uint8 WHO_AM_I     = 0x75;
 
+struct RawMpu6050Data {
+    int16_t accel_x, accel_y, accel_z;
+    int16_t temp;
+    int16_t gyro_x, gyro_y, gyro_z;
+};
+
 Mpu6050::Mpu6050(i2c_inst_t* i2c_instance, const uint8 i2c_address)
     : i2c(i2c_instance), address(i2c_address) {}
 
-// --------------------------------------------------
-// Init
-// --------------------------------------------------
 boolean Mpu6050::begin() {
     // Check WHO_AM_I register (should return 0x68)
-    uint8 buf;
-    if (!readRegisters(WHO_AM_I, &buf, 1)) return false;
-    if (buf != 0x68) {
-        printf("MPU6050 not found! WHO_AM_I=0x%02X\n", buf);
+    if (!isConnected()) {
         return false;
     }
 
     // Wake up the device
-    if (!writeRegister(PWR_MGMT_1, 0x00)) return false;
+    if (!writeRegister(PWR_MGMT_1, 0x00)) {
+        Logger::instance().log(LogLevel::ERROR, "MPU6050: Failed to wake up device");
+        return false;
+    }
     sleep_ms(100);
 
     // Default ranges
@@ -42,39 +48,48 @@ boolean Mpu6050::begin() {
     return true;
 }
 
-// --------------------------------------------------
-// Read data
-// --------------------------------------------------
-boolean Mpu6050::readData(Mpu6050Data& data) const {
-    uint8 buffer[14];
-    if (!readRegisters(ACCEL_XOUT_H, buffer, 14)) {
+boolean Mpu6050::isConnected() const {
+    uint8 buf;
+    if (!readRegisters(WHO_AM_I, &buf, 1)) {
+        Logger::instance().log(LogLevel::ERROR, "MPU6050: Failed to read WHO_AM_I register");
+        return false;
+    }
+    if (buf != 0x68) {
+        Logger::instance().log(LogLevel::ERROR, "MPU6050 not found! WHO_AM_I=0x%02X");
+        return false;
+    }
+    return true;
+}
+
+boolean Mpu6050::readData(Mpu6050Data& data) {
+    RawMpu6050Data raw_data;
+    if (!readRegisters(ACCEL_XOUT_H, reinterpret_cast<uint8_t*>(&raw_data), sizeof(raw_data))) {
+        Logger::instance().log(LogLevel::ERROR, "MPU6050: Failed to read data");
         return false;
     }
 
-    int16 raw_ax   = (buffer[0] << 8) | buffer[1];
-    int16 raw_ay   = (buffer[2] << 8) | buffer[3];
-    int16 raw_az   = (buffer[4] << 8) | buffer[5];
-    int16 raw_temp = (buffer[6] << 8) | buffer[7];
-    int16 raw_gx   = (buffer[8] << 8) | buffer[9];
-    int16 raw_gy   = (buffer[10] << 8) | buffer[11];
-    int16 raw_gz   = (buffer[12] << 8) | buffer[13];
+    // The MPU6050 sends the data in big-endian format, so we need to swap the bytes.
+    raw_data.accel_x = __builtin_bswap16(raw_data.accel_x);
+    raw_data.accel_y = __builtin_bswap16(raw_data.accel_y);
+    raw_data.accel_z = __builtin_bswap16(raw_data.accel_z);
+    raw_data.temp = __builtin_bswap16(raw_data.temp);
+    raw_data.gyro_x = __builtin_bswap16(raw_data.gyro_x);
+    raw_data.gyro_y = __builtin_bswap16(raw_data.gyro_y);
+    raw_data.gyro_z = __builtin_bswap16(raw_data.gyro_z);
 
-    data.accel_x = accelRawToG(raw_ax) - accelOffsetX;
-    data.accel_y = accelRawToG(raw_ay) - accelOffsetY;
-    data.accel_z = accelRawToG(raw_az) - accelOffsetZ;
+    data.accel_x = accelRawToG(raw_data.accel_x) - accelOffsetX;
+    data.accel_y = accelRawToG(raw_data.accel_y) - accelOffsetY;
+    data.accel_z = accelRawToG(raw_data.accel_z) - accelOffsetZ;
 
-    data.gyro_x = gyroRawToDps(raw_gx) - gyroOffsetX;
-    data.gyro_y = gyroRawToDps(raw_gy) - gyroOffsetY;
-    data.gyro_z = gyroRawToDps(raw_gz) - gyroOffsetZ;
+    data.gyro_x = gyroRawToDps(raw_data.gyro_x) - gyroOffsetX;
+    data.gyro_y = gyroRawToDps(raw_data.gyro_y) - gyroOffsetY;
+    data.gyro_z = gyroRawToDps(raw_data.gyro_z) - gyroOffsetZ;
 
-    data.temperature = tempRawToC(raw_temp);
+    data.temperature = tempRawToC(raw_data.temp);
 
     return true;
 }
 
-// --------------------------------------------------
-// Range configuration
-// --------------------------------------------------
 boolean Mpu6050::setAccelRange(AccelRange range) {
     if (!writeRegister(ACCEL_CONFIG, static_cast<uint8>(range) << 3)) return false;
 
@@ -99,9 +114,6 @@ boolean Mpu6050::setGyroRange(GyroRange range) {
     return true;
 }
 
-// --------------------------------------------------
-// Calibration
-// --------------------------------------------------
 void Mpu6050::setAccelOffsets(float32 x, float32 y, float32 z) {
     accelOffsetX = x;
     accelOffsetY = y;
@@ -135,6 +147,12 @@ void Mpu6050::calibrate(uint16 samples) {
     setGyroOffsets(gx / samples, gy / samples, gz / samples);
 }
 
+/**
+ * @brief Calculates a checksum for the calibration data.
+ * This is a simple XOR checksum.
+ * @param d The calibration data.
+ * @return The calculated checksum.
+ */
 static uint32 calcChecksum(const CalibrationData &d) {
     const auto *p = reinterpret_cast<const uint32*>(&d);
     uint32 sum = 0;
@@ -144,10 +162,7 @@ static uint32 calcChecksum(const CalibrationData &d) {
     return sum;
 }
 
-// --------------------------------------------------
-// Persistent storage (stubbed: depends on your platform)
-// --------------------------------------------------
-void Mpu6050::saveCalibration() const {
+void Mpu6050::saveCalibration() {
     CalibrationData data {
         accelOffsetX, accelOffsetY, accelOffsetZ,
         gyroOffsetX, gyroOffsetY, gyroOffsetZ,
@@ -168,6 +183,7 @@ boolean Mpu6050::loadCalibration() {
         reinterpret_cast<const CalibrationData*>(XIP_BASE + CALIBRATION_FLASH_OFFSET);
 
     if (data->checksum != calcChecksum(*data)) {
+        Logger::instance().log(LogLevel::WARN, "MPU6050: Invalid calibration data checksum");
         return false; // invalid data
     }
 
@@ -181,15 +197,12 @@ boolean Mpu6050::loadCalibration() {
     return true;
 }
 
-// --------------------------------------------------
-// Helpers
-// --------------------------------------------------
-boolean Mpu6050::writeRegister(const uint8 reg, const uint8 value) const {
+boolean Mpu6050::writeRegister(uint8 reg, uint8 value) const {
     uint8 buf[2] = {reg, value};
     return i2c_write_blocking(i2c, address, buf, 2, false) == 2;
 }
 
-boolean Mpu6050::readRegisters(const uint8 reg, uint8* buffer, const uint8 length) const {
+boolean Mpu6050::readRegisters(uint8 reg, uint8* buffer, uint8 length) const {
     if (i2c_write_blocking(i2c, address, &reg, 1, true) != 1) return false;
     return i2c_read_blocking(i2c, address, buffer, length, false) == length;
 }

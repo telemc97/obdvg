@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 
-# pico-sdk before project
+if (DEBUG)
+  set(PICO_DEOPTIMIZED_DEBUG 1)
+endif ()
+
+  # pico-sdk before project
 # Setting variables
 set(PICO_BOARD pico2_w)
 set(PICO_PLATFORM rp2350)
@@ -42,7 +46,7 @@ include(FreeRTOS_Kernel_import.cmake)
 pico_sdk_init()
 
 file(GLOB obdvg_MAIN CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_LIST_DIR}/app/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/app/main.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/src/**/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/src/FreeRTOSHooks.c"
 

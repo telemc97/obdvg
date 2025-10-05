@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OBDVG_TYPES_H
+#define OBDVG_TYPES_H
 
 #include <array>
 #include <string>
@@ -24,3 +25,5 @@
 // Macros for std::array and std::string
 #define Array(type, size)  std::array<type, size>
 #define String             std::string
+
+#endif //OBDVG_TYPES_H

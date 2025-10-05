@@ -1,4 +1,6 @@
-#pragma once
+#ifndef OBDVG_PIDDECODER_H
+#define OBDVG_PIDDECODER_H
+
 #include "Types.h"
 
 class PidDecoder {
@@ -7,3 +9,5 @@ class PidDecoder {
         static uint8 decodeSpeed(uint8 const A) { return A; }
         static int8 decodeTemp(uint8 const A) { return static_cast<int8>(A) - 40; }
 };
+
+#endif //OBDVG_PIDDECODER_H
