@@ -9,18 +9,18 @@ void Logger::setLevel(const LogLevel level) { currentLevel = level; }
 
 void Logger::printPrefix(const LogLevel level) {
   switch (level) {
-  case LogLevel::DEBUG:
-    printf("[DEBUG] ");
-    break;
-  case LogLevel::INFO:
-    printf("[INFO ] ");
-    break;
-  case LogLevel::WARN:
-    printf("[WARN ] ");
-    break;
-  case LogLevel::ERROR:
-    printf("[ERROR] ");
-    break;
+    case LogLevel::DEBUG:
+      printf("[DEBUG] ");
+      break;
+    case LogLevel::INFO:
+      printf("[INFO ] ");
+      break;
+    case LogLevel::WARN:
+      printf("[WARN ] ");
+      break;
+    case LogLevel::ERROR:
+      printf("[ERROR] ");
+      break;
   }
 }
 

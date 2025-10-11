@@ -1,7 +1,3 @@
-//
-// Created by Tilemahos Mitroudas on 4/10/25.
-//
-
 #include "Types.h"
 
 #include "display/Display.h"

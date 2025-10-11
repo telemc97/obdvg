@@ -4,6 +4,7 @@
 #include "Types.h"
 
 #include <string>
+#include <stdio.h>
 
 // Simple log levels
 enum class LogLevel {

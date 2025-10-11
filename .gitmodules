@@ -4,3 +4,6 @@
 [submodule "libs/pico-sdk"]
 	path = libs/pico-sdk
 	url = https://github.com/raspberrypi/pico-sdk.git
+[submodule "debug/openocd"]
+	path = debug/openocd
+	url = https://github.com/raspberrypi/openocd.git

@@ -72,7 +72,7 @@
 #define configMESSAGE_BUFFER_LENGTH_TYPE        size_t
 
 /* Memory allocation related definitions. */
-#define configSUPPORT_STATIC_ALLOCATION         1
+#define configSUPPORT_STATIC_ALLOCATION         0
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
 #define configTOTAL_HEAP_SIZE                   (128*1024)
 #define configAPPLICATION_ALLOCATED_HEAP        0
@@ -104,12 +104,13 @@
 #define configMAX_API_CALL_INTERRUPT_PRIORITY   [dependent on processor and application]
 */
 
-// Single Core
-#define configNUMBER_OF_CORES                       	1
-#define configTICK_CORE                         					0
-#define configRUN_MULTIPLE_PRIORITIES         0
-#define configUSE_CORE_AFFINITY                 		0
+// Dual Core
+#define configNUMBER_OF_CORES                   1
+#define configTICK_CORE                         0
+#define configRUN_MULTIPLE_PRIORITIES           0
+#define configUSE_CORE_AFFINITY                 0
 #define configNUM_CORES 											configNUMBER_OF_CORES  //SDK still relies on this
+#define configUSE_PASSIVE_IDLE_HOOK             0
 
 
 /* RP2040 specific */
@@ -140,6 +141,12 @@ to exclude the API function. */
 
 /* A header file that defines trace macro can be included here. */
 
+#define configENABLE_MPU                        0
+#define configENABLE_TRUSTZONE                  0
+#define configRUN_FREERTOS_SECURE_ONLY          1
+#define configENABLE_FPU                        1
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY    16
+#define configCPU_CLOCK_HZ                      150000000
 
 #ifdef __cplusplus
 extern "C"
@@ -152,16 +159,5 @@ void *pvPortRealloc( void *pv, size_t size );
 #ifdef __cplusplus
 } // extern "C"
 #endif
-
-
-#if PICO_RP2350
-#define configENABLE_MPU                        0
-#define configENABLE_TRUSTZONE                  0
-#define configRUN_FREERTOS_SECURE_ONLY          1
-#define configENABLE_FPU                        1
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY    16
-#define configCPU_CLOCK_HZ                      150000000
-#endif
-
 
 #endif /* FREERTOS_CONFIG_H */
