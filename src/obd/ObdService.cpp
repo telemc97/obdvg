@@ -40,7 +40,7 @@ bool ObdService::pollResponse(const CanFrame &rx, const uint8 pid, float32 &valu
   return false;
 }
 
-bool ObdService::isValidResponse(const CanFrame &frame, const uint8_t requestedPid) {
+bool ObdService::isValidResponse(const CanFrame &frame, const uint8 requestedPid) {
   bool valid = false;
   // Check if frame ID is in OBD-II response range and has enough data
   if (frame.id >= 0x7E8 && frame.id <= 0x7EF && frame.dlc >= 3) {

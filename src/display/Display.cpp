@@ -1,5 +1,6 @@
 #include "Types.h"
 
+#include "Config.h"
 #include "display/Display.h"
 
 // Base addresses for digits
@@ -74,7 +75,7 @@ void Display::setText(const char *str4) {
 }
 
 void Display::writeByte(const uint8 addr, const uint8 data) const {
-    i2c_write_blocking(i2c, addr, &data, 1, false);
+    i2c_write_timeout_us(i2c, addr, &data, 1, false, Config::DISPLAY_I2C_TIMEOUT);
 }
 
 void Display::update() const {
@@ -87,6 +88,6 @@ void Display::update() const {
 
 boolean Display::isConnected() const {
     uint8_t data = 0;
-    int ret = i2c_write_blocking(i2c, TM1650_CTRL_ADDR, &data, 1, false);
-    return ret != PICO_ERROR_GENERIC;
+    int ret = i2c_write_timeout_us(i2c, TM1650_CTRL_ADDR, &data, 1, false, Config::DISPLAY_I2C_TIMEOUT);
+    return ret >= 0;
 }

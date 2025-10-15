@@ -9,14 +9,39 @@
 // Internal includes
 #include "can/CanFrame.h"
 
+/**
+ * @class ObdService
+ * @brief Provides static methods to handle OBD-II communications.
+ *
+ * This class includes functions to build CAN frames for OBD-II PID requests
+ * and to process the responses from the vehicle.
+ */
 class ObdService {
-    
-    public:
-        static void buildCanFrameForPID(uint8 pid, CanFrame& tx);
-        static bool pollResponse(const CanFrame& rx, uint8 pid, float32& valueOut);
+public:
+    /**
+     * @brief Constructs a CAN frame for a specific OBD-II PID request.
+     * @param pid The Parameter ID (PID) to request.
+     * @param[out] tx The CAN frame to be populated with the request data.
+     */
+    static void buildCanFrameForPID(uint8 pid, CanFrame &tx);
 
-    private:
-        static bool isValidResponse(const CanFrame& frame, uint8 requestedPid);
+    /**
+     * @brief Polls and decodes a response from a received CAN frame.
+     * @param rx The received CAN frame.
+     * @param pid The PID that was requested.
+     * @param[out] valueOut The decoded value from the response.
+     * @return True if the response is valid and successfully decoded, false otherwise.
+     */
+    static bool pollResponse(const CanFrame &rx, uint8 pid, float32 &valueOut);
+
+private:
+    /**
+     * @brief Validates if a received CAN frame is a valid response for the requested PID.
+     * @param frame The received CAN frame.
+     * @param requestedPid The PID that was requested.
+     * @return True if the frame is a valid response, false otherwise.
+     */
+    static bool isValidResponse(const CanFrame &frame, uint8 requestedPid);
 };
 
 #endif //OBDVG_OBDSERVICE_H

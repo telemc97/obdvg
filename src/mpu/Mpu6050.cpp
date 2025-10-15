@@ -5,6 +5,7 @@
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 
+#include "Config.h"
 #include "mpu/Mpu6050.h"
 #include "util/Logger.h"
 
@@ -28,12 +29,7 @@ struct RawMpu6050Data {
 Mpu6050::Mpu6050(i2c_inst_t* i2c_instance, const uint8 i2c_address)
     : i2c(i2c_instance), address(i2c_address) {}
 
-boolean Mpu6050::begin() {
-    // Check WHO_AM_I register (should return 0x68)
-    if (!isConnected()) {
-        return false;
-    }
-
+boolean Mpu6050::init() {
     // Wake up the device
     if (!writeRegister(PWR_MGMT_1, 0x00)) {
         Logger::instance().log(LogLevel::ERROR, "MPU6050: Failed to wake up device");
@@ -199,12 +195,12 @@ boolean Mpu6050::loadCalibration() {
 
 boolean Mpu6050::writeRegister(uint8 reg, uint8 value) const {
     uint8 buf[2] = {reg, value};
-    return i2c_write_blocking(i2c, address, buf, 2, false) == 2;
+    return i2c_write_timeout_us(i2c, address, buf, 2, false, Config::MPU_I2C_TIMEOUT) == 2;
 }
 
 boolean Mpu6050::readRegisters(uint8 reg, uint8* buffer, uint8 length) const {
-    if (i2c_write_blocking(i2c, address, &reg, 1, true) != 1) return false;
-    return i2c_read_blocking(i2c, address, buffer, length, false) == length;
+    if (i2c_write_timeout_us(i2c, address, &reg, 1, true, Config::MPU_I2C_TIMEOUT) != 1) return false;
+    return i2c_read_timeout_us(i2c, address, buffer, length, false, Config::MPU_I2C_TIMEOUT) == length;
 }
 
 float32 Mpu6050::accelRawToG(const int16 raw) const {

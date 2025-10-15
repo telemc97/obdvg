@@ -26,4 +26,6 @@
 #define Array(type, size)  std::array<type, size>
 #define String             std::string
 
+#define TRUE
+
 #endif //OBDVG_TYPES_H

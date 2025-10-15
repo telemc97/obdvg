@@ -5,31 +5,43 @@
 
 // Internal includes
 #include "util/Logger.h"
+#include "FreeRTOSConfig.h"
 
 namespace  Config {
 
     // CAN Related
-    constexpr int32 CAN_TX_PIN = 6;
-    constexpr int32 CAN_RX_PIN = 7;
     constexpr int32 CAN_BAUD = 115200;
 
     // MPU Related
+    constexpr uint32 MPU_I2C_TIMEOUT = 10000;
 
     // DISPLAY Related
+    constexpr uint32 DISPLAY_I2C_TIMEOUT = 10000;
 
     // LOGGER Related
     constexpr LogLevel LOG_LEVEL = LogLevel::DEBUG;
 
     // FreeRTOS Task Settings
+    // CAN TASK
+    constexpr uint8 CAN_TASK_PRIORITY = configMAX_PRIORITIES - 1;
     constexpr uint32 CAN_TASK_STACK_SIZE = 2048;
-    constexpr uint32 OBD_TASK_STACK_SIZE = 2048;
-    constexpr uint32 MPU_TASK_STACK_SIZE = 4096;
-    constexpr uint32 DISPLAY_TASK_STACK_SIZE = 4096;
+    constexpr uint32 CAN_V_TASK_DELAY = 500;
 
-    constexpr uint8 CAN_TASK_PRIORITY = 4;
-    constexpr uint8 OBD_TASK_PRIORITY = 2;
-    constexpr uint8 MPU_TASK_PRIORITY = 1;
-    constexpr uint8 DISPLAY_TASK_PRIORITY = 3;
+    // OBD TASK
+    constexpr uint8 OBD_TASK_PRIORITY = configMAX_PRIORITIES - 2;
+    constexpr uint32 OBD_TASK_STACK_SIZE = 2048;
+    constexpr uint32 OBD_V_TASK_DELAY = 500;
+
+    // MPU TASK
+    constexpr uint8 MPU_TASK_PRIORITY = configMAX_PRIORITIES - 1;
+    constexpr uint32 MPU_TASK_STACK_SIZE = 4096;
+    constexpr uint32 MPU_V_TASK_DELAY = 500;
+
+    // DISPLAY TASK
+    constexpr uint8 DISPLAY_TASK_PRIORITY = configMAX_PRIORITIES - 1;
+    constexpr uint32 DISPLAY_TASK_STACK_SIZE = 4096;
+    constexpr uint32 DISPLAY_V_TASK_DELAY = 500;
+
 
     // Queue Lengths
     constexpr uint8 CAN_TX_QUEUE_LENGTH = 8;
