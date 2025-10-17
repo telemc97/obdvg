@@ -1,32 +1,39 @@
 #include "Types.h"
 
-#include "Config.h"
 #include "util/Logger.h"
+#include <cstdio>
 
-Logger::Logger() : currentLevel(Config::LOG_LEVEL) {}
+Logger::Logger(): currentLevel(LogLevel::ERROR) {}
 
 void Logger::setLevel(const LogLevel level) { currentLevel = level; }
+
+void Logger::setLevel(const int level) {
+  currentLevel = static_cast<LogLevel>(0);
+    if (level >= 0 && level <= 3) {
+        currentLevel = static_cast<LogLevel>(level);
+    }
+}
 
 void Logger::printPrefix(const LogLevel level) {
   switch (level) {
     case LogLevel::DEBUG:
-      printf("[DEBUG] ");
+      std::printf("[DEBUG] ");
       break;
     case LogLevel::INFO:
-      printf("[INFO ] ");
+      std::printf("[INFO ] ");
       break;
     case LogLevel::WARN:
-      printf("[WARN ] ");
+      std::printf("[WARN ] ");
       break;
     case LogLevel::ERROR:
-      printf("[ERROR] ");
+      std::printf("[ERROR] ");
       break;
   }
 }
 
 void Logger::log(const LogLevel level, const String &msg) const {
-  if (level < currentLevel)
+  if (level > currentLevel)
     return;
   printPrefix(level);
-  printf("%s\n", msg.c_str());
+  std::printf("%s\n", msg.c_str());
 }

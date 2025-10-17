@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "hardware/i2c.h"
-#include "pico/stdlib.h"
 
 enum class AccelRange {
     AFS_2G  = 0,
@@ -43,16 +42,10 @@ public:
     /**
      * @brief Construct a new Mpu6050 object.
      * @param i2c_instance The I2C instance to use (e.g., i2c0).
-     * @param i2c_address The 7-bit I2C address of the MPU6050.
+     * @param sdaPin The SDA Pin
+     * @param sclPin The SCL Pin
      */
-    explicit Mpu6050(i2c_inst_t* i2c_instance, uint8 i2c_address = 0x68);
-
-    /**
-     * @brief Initializes the MPU6050 sensor.
-     * Wakes the device and sets default ranges.
-     * @return True if initialization was successful, false otherwise.
-     */
-    boolean init();
+    explicit Mpu6050(i2c_inst_t* i2c_instance);
 
     /**
      * @brief Checks if the MPU6050 is connected and responsive.
@@ -60,6 +53,13 @@ public:
      * @return True if the sensor is found, false otherwise.
      */
     boolean isConnected() const;
+
+    /**
+     * @brief Initializes the MPU6050 sensor.
+     * Wakes the device and sets default ranges.
+     * @return True if initialization was successful, false otherwise.
+     */
+    boolean init();
 
     /**
      * @brief Reads the latest sensor data (acceleration, gyroscope, temperature).
@@ -120,7 +120,6 @@ public:
 
 private:
     i2c_inst_t* i2c;
-    uint8 address;
 
     float32 accelScale = 16384.0f;
     float32 gyroScale  = 131.0f;

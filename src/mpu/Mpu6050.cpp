@@ -4,12 +4,15 @@
 
 #include "hardware/flash.h"
 #include "hardware/sync.h"
+#include "pico/stdlib.h"
 
 #include "Config.h"
 #include "mpu/Mpu6050.h"
 #include "util/Logger.h"
 
 #define CALIBRATION_FLASH_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
+
+#define MPU6050_ADDR_BASE 0x69
 
 // MPU6050 register map
 static constexpr uint8 PWR_MGMT_1   = 0x6B;
@@ -26,13 +29,25 @@ struct RawMpu6050Data {
     int16_t gyro_x, gyro_y, gyro_z;
 };
 
-Mpu6050::Mpu6050(i2c_inst_t* i2c_instance, const uint8 i2c_address)
-    : i2c(i2c_instance), address(i2c_address) {}
+Mpu6050::Mpu6050(i2c_inst_t* i2c_instance): i2c(i2c_instance) {}
+
+boolean Mpu6050::isConnected() const {
+    uint8 buf;
+    if (!readRegisters(WHO_AM_I, &buf, 1)) {
+        Logger::instance().log(LogLevel::DEBUG, "MPU6050: Failed to read WHO_AM_I register");
+        return false;
+    }
+    if (buf != MPU6050_ADDR_BASE) {
+        Logger::instance().log(LogLevel::DEBUG, "MPU6050 not found! WHO_AM_I=0x%02X", buf);
+        return false;
+    }
+    return true;
+}
 
 boolean Mpu6050::init() {
     // Wake up the device
     if (!writeRegister(PWR_MGMT_1, 0x00)) {
-        Logger::instance().log(LogLevel::ERROR, "MPU6050: Failed to wake up device");
+        Logger::instance().log(LogLevel::DEBUG, "MPU6050: Failed to wake up device");
         return false;
     }
     sleep_ms(100);
@@ -44,23 +59,10 @@ boolean Mpu6050::init() {
     return true;
 }
 
-boolean Mpu6050::isConnected() const {
-    uint8 buf;
-    if (!readRegisters(WHO_AM_I, &buf, 1)) {
-        Logger::instance().log(LogLevel::ERROR, "MPU6050: Failed to read WHO_AM_I register");
-        return false;
-    }
-    if (buf != 0x68) {
-        Logger::instance().log(LogLevel::ERROR, "MPU6050 not found! WHO_AM_I=0x%02X");
-        return false;
-    }
-    return true;
-}
-
 boolean Mpu6050::readData(Mpu6050Data& data) {
     RawMpu6050Data raw_data;
     if (!readRegisters(ACCEL_XOUT_H, reinterpret_cast<uint8_t*>(&raw_data), sizeof(raw_data))) {
-        Logger::instance().log(LogLevel::ERROR, "MPU6050: Failed to read data");
+        Logger::instance().log(LogLevel::DEBUG, "MPU6050: Failed to read data");
         return false;
     }
 
@@ -179,7 +181,7 @@ boolean Mpu6050::loadCalibration() {
         reinterpret_cast<const CalibrationData*>(XIP_BASE + CALIBRATION_FLASH_OFFSET);
 
     if (data->checksum != calcChecksum(*data)) {
-        Logger::instance().log(LogLevel::WARN, "MPU6050: Invalid calibration data checksum");
+        Logger::instance().log(LogLevel::DEBUG, "MPU6050: Invalid calibration data checksum");
         return false; // invalid data
     }
 
@@ -195,12 +197,22 @@ boolean Mpu6050::loadCalibration() {
 
 boolean Mpu6050::writeRegister(uint8 reg, uint8 value) const {
     uint8 buf[2] = {reg, value};
-    return i2c_write_timeout_us(i2c, address, buf, 2, false, Config::MPU_I2C_TIMEOUT) == 2;
+    // Write the register address and the value in one go.
+    int32 write_result = i2c_write_timeout_us(i2c, MPU6050_ADDR_BASE, buf, 2, false, Config::MPU_I2C_TIMEOUT);
+    // Return true only if both bytes were written successfully.
+    return write_result == 2;
 }
 
 boolean Mpu6050::readRegisters(uint8 reg, uint8* buffer, uint8 length) const {
-    if (i2c_write_timeout_us(i2c, address, &reg, 1, true, Config::MPU_I2C_TIMEOUT) != 1) return false;
-    return i2c_read_timeout_us(i2c, address, buffer, length, false, Config::MPU_I2C_TIMEOUT) == length;
+    // First, write the starting register address without releasing the bus.
+    int32 write_result = i2c_write_timeout_us(i2c, MPU6050_ADDR_BASE, &reg, 1, true, Config::MPU_I2C_TIMEOUT);
+    if (write_result != 1) {
+        return false; // Failed to write register address.
+    }
+    // Now, read the specified number of bytes.
+    int32 read_result = i2c_read_timeout_us(i2c, MPU6050_ADDR_BASE, buffer, length, false, Config::MPU_I2C_TIMEOUT);
+    // Return true only if the expected number of bytes were read.
+    return read_result == length;
 }
 
 float32 Mpu6050::accelRawToG(const int16 raw) const {

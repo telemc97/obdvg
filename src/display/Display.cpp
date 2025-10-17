@@ -1,13 +1,13 @@
 #include "Types.h"
-
+#include "pico/stdlib.h"
 #include "Config.h"
 #include "display/Display.h"
 
-// Base addresses for digits
+// Base addresses as per module spec
 #define TM1650_ADDR_BASE 0x34
 #define TM1650_CTRL_ADDR 0x24
 
-// Converts a character to its 7-segment representation.
+// Character to 7-segment mapping (without dot)
 static uint8 getCharSeg(char c) {
     switch (c) {
         case '0': return 0x3F;
@@ -36,29 +36,40 @@ static uint8 getCharSeg(char c) {
         case 'P': return 0x73;
         case 'S': return 0x6D;
         case 'U': return 0x3E;
-        default: return 0x00; // Default to blank
+        default:  return 0x00;
     }
 }
 
-// Constructor
-Display::Display(i2c_inst_t *i2c_instance, uint32 freqHz)
-    : i2c(i2c_instance), freqHz(freqHz), brightness(8)
+Display::Display(i2c_inst_t *i2c_instance)
+    : i2c(i2c_instance), brightness(8)
 {
-    memset(text, ' ', 4);
+    memset(text, ' ', sizeof(text));
     text[4] = '\0';
+    memset(dots, 0, sizeof(dots));
 }
-void Display::init() const {
-    i2c_init(i2c, freqHz);
 
-    // Turn on display with default brightness
-    writeByte(TM1650_CTRL_ADDR, 0x01 | brightness);
+boolean Display::isConnected() const {
+    uint8_t ctrl = 0x01;
+    int ret = i2c_write_blocking(i2c, TM1650_CTRL_ADDR, &ctrl, 1, false);
+    return (ret >= 0);
+}
+
+void Display::init() {
+    uint8_t ctrl = 0x48 | ((brightness - 1) & 0x07);
+    writeByte(TM1650_CTRL_ADDR, ctrl);
+    sleep_ms(5);
+    setText("HELO");
+    update();
+
 }
 
 void Display::setBrightness(uint8 level) {
     if (level < 1) level = 1;
     if (level > 8) level = 8;
     brightness = level;
-    writeByte(TM1650_CTRL_ADDR, 0x01 | brightness);
+    uint8_t ctrl = 0x48 | ((brightness - 1) & 0x07);
+    writeByte(TM1650_CTRL_ADDR, ctrl);
+    sleep_ms(2);
 }
 
 void Display::setText(const char *str4) {
@@ -74,20 +85,23 @@ void Display::setText(const char *str4) {
     text[4] = '\0';
 }
 
-void Display::writeByte(const uint8 addr, const uint8 data) const {
+void Display::setDot(uint8 digitIndex, bool on) {
+    if (digitIndex > 3) return;
+    if (on) {
+        dots[digitIndex] = 0x80;  // bit7 = dot / decimal point
+    } else {
+        dots[digitIndex] = 0x00;
+    }
+}
+
+void Display::writeByte(uint8 addr, uint8 data) const {
     i2c_write_timeout_us(i2c, addr, &data, 1, false, Config::DISPLAY_I2C_TIMEOUT);
+    sleep_us(200);
 }
 
 void Display::update() const {
     for (int i = 0; i < 4; i++) {
-        const char c = text[i];
-        const uint8 seg = getCharSeg(c);
+        uint8 seg = getCharSeg(text[i]) | dots[i];
         writeByte(TM1650_ADDR_BASE + i, seg);
     }
-}
-
-boolean Display::isConnected() const {
-    uint8_t data = 0;
-    int ret = i2c_write_timeout_us(i2c, TM1650_CTRL_ADDR, &data, 1, false, Config::DISPLAY_I2C_TIMEOUT);
-    return ret >= 0;
 }

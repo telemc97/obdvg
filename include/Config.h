@@ -4,22 +4,26 @@
 #include "Types.h"
 
 // Internal includes
-#include "util/Logger.h"
 #include "FreeRTOSConfig.h"
 
 namespace  Config {
+
+    // i2c Bus Related
+    constexpr uint32 I2C_FREQUENCY = 100 * 1000;
+    constexpr uint8 I2C_SDA_PIN = 2;
+    constexpr uint8 I2C_SCL_PIN = 3;
 
     // CAN Related
     constexpr int32 CAN_BAUD = 115200;
 
     // MPU Related
-    constexpr uint32 MPU_I2C_TIMEOUT = 10000;
+    constexpr uint32 MPU_I2C_TIMEOUT = 100000;
 
     // DISPLAY Related
-    constexpr uint32 DISPLAY_I2C_TIMEOUT = 10000;
+    constexpr uint32 DISPLAY_I2C_TIMEOUT = 100000;
 
     // LOGGER Related
-    constexpr LogLevel LOG_LEVEL = LogLevel::DEBUG;
+    constexpr uint8 LOG_LEVEL = 3;
 
     // FreeRTOS Task Settings
     // CAN TASK
