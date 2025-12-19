@@ -12,7 +12,7 @@
 
 #define CALIBRATION_FLASH_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 
-#define MPU6050_ADDR_BASE 0x69
+#define MPU6050_ADDR_BASE 0x68
 
 // MPU6050 register map
 static constexpr uint8 PWR_MGMT_1   = 0x6B;
@@ -22,6 +22,8 @@ static constexpr uint8 GYRO_XOUT_H  = 0x43;
 static constexpr uint8 ACCEL_CONFIG = 0x1C;
 static constexpr uint8 GYRO_CONFIG  = 0x1B;
 static constexpr uint8 WHO_AM_I     = 0x75;
+
+static constexpr uint8 WHO_AM_I_VAL = 0x98;
 
 struct RawMpu6050Data {
     int16_t accel_x, accel_y, accel_z;
@@ -37,7 +39,7 @@ boolean Mpu6050::isConnected() const {
         Logger::instance().log(LogLevel::DEBUG, "MPU6050: Failed to read WHO_AM_I register");
         return false;
     }
-    if (buf != MPU6050_ADDR_BASE) {
+    if (buf != WHO_AM_I_VAL) {
         Logger::instance().log(LogLevel::DEBUG, "MPU6050 not found! WHO_AM_I=0x%02X", buf);
         return false;
     }
@@ -125,6 +127,10 @@ void Mpu6050::setGyroOffsets(float32 x, float32 y, float32 z) {
 }
 
 void Mpu6050::calibrate(uint16 samples) {
+    // Reset offsets to ensure we are calculating based on raw data
+    setAccelOffsets(0, 0, 0);
+    setGyroOffsets(0, 0, 0);
+
     float32 ax = 0, ay = 0, az = 0;
     float32 gx = 0, gy = 0, gz = 0;
 
