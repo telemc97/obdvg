@@ -3,38 +3,13 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 
 #include "util/Utils.h"
 #include "util/Logger.h"
 
 
 #include "pico/stdlib.h"
-
-void Utils::floatToChars(float32 const value, char out[5]) {
-    // Handle NaN or Inf
-    if (!std::isfinite(value)) {
-        strncpy(out, "ERR ", 5);
-        return;
-    }
-
-    // Round to one decimal place for 4-char display
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%.1f", value);  // e.g. 12.3, -0.5, 3.1
-
-    // If longer than 4, truncate (Display::setText will also pad/truncate)
-    size_t len = strlen(buf);
-    if (len > 4) len = 4;
-
-    memcpy(out, buf, len);
-
-    // Pad with spaces if shorter
-    if (len < 4)
-        memset(out + len, ' ', 4 - len);
-
-    out[4] = '\0';
-}
-
-#include "util/Logger.h"
 
 void Utils::scanI2cBus(i2c_inst_t *i2c, uint8_t sdaPin, uint8_t sclPin) {
     gpio_set_function(sdaPin, GPIO_FUNC_I2C);
@@ -72,4 +47,17 @@ void Utils::scanI2cBus(i2c_inst_t *i2c, uint8_t sdaPin, uint8_t sclPin) {
 
     Logger::instance().log(LogLevel::INFO, "Done.");
 
+}
+
+uint64 Utils::getUnixTimestamp() {
+    return static_cast<uint64>(time(nullptr));
+}
+
+uint32 Utils::initI2C(i2c_inst_t* i2c_instance, uint32 freq, uint8 sdaPin, uint8 sclPin) {
+    const uint32 ret = i2c_init(i2c_instance, freq);
+    gpio_set_function(sdaPin, GPIO_FUNC_I2C);
+    gpio_pull_up(sdaPin);
+    gpio_set_function(sclPin, GPIO_FUNC_I2C);
+    gpio_pull_up(sclPin);
+    return ret;
 }

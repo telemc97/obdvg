@@ -35,6 +35,18 @@ public:
      */
     static void scanI2cBus(i2c_inst_t *i2c, uint8 sdaPin, uint8 sclPin);
 
+    /**
+     * @brief Gets the current Unix timestamp in seconds.
+     * 
+     * Note: On the Raspberry Pi Pico, this will return seconds since boot
+     * unless the RTC has been synchronized with a real-time source.
+     * 
+     * @return uint64 The Unix timestamp.
+     */
+    static uint64 getUnixTimestamp();
+
+    static uint32 initI2C(i2c_inst_t* i2c_instance, uint32 freq, uint8 sdaPin, uint8 sclPin);
+
 };
 
 #endif //OBDVG_UTILS_H

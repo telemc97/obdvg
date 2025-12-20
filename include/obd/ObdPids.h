@@ -1,20 +1,144 @@
 #ifndef OBDVG_OBDPIDS_H
 #define OBDVG_OBDPIDS_H
 
-#define PID_ENGINE_RPM          0x0C
-#define PID_VEHICLE_SPEED       0x0D
-#define PID_ENGINE_TEMP         0x05
-#define PID_THROTTLE_POS        0x11
-#define PID_MAF_FLOW            0x10
-#define PID_FUEL_LEVEL          0x2F
-#define PID_INTAKE_TEMP         0x0F
-#define PID_AMBIENT_TEMP        0x46
-#define PID_ENGINE_LOAD         0x04
-#define PID_FUEL_PRESSURE       0x0A
-#define PID_BAROMETRIC_PRESS    0x33
-#define PID_TIMING_ADVANCE      0x0E
-#define PID_O2_SENSOR_1         0x14
-#define PID_O2_SENSOR_2         0x15
-#define PID_RUNTIME_SINCE_START 0x1F
+#include "Types.h"
+
+/**
+ * @enum ObdPid
+ * @brief Represents standard OBD-II Parameter IDs (Mode 01).
+ * 
+ * Based on Service 01 (Show current data) PIDs.
+ */
+enum class ObdPid : uint8 {
+    PIDS_SUPPORTED_01_20        = 0x00,
+    MONITOR_STATUS              = 0x01,
+    FREEZE_DTC                  = 0x02,
+    FUEL_SYSTEM_STATUS          = 0x03,
+    ENGINE_LOAD                 = 0x04,
+    ENGINE_COOLANT_TEMP         = 0x05,
+    SHORT_TERM_FUEL_TRIM_1      = 0x06,
+    LONG_TERM_FUEL_TRIM_1       = 0x07,
+    SHORT_TERM_FUEL_TRIM_2      = 0x08,
+    LONG_TERM_FUEL_TRIM_2       = 0x09,
+    FUEL_PRESSURE               = 0x0A,
+    INTAKE_MAP                  = 0x0B,
+    ENGINE_RPM                  = 0x0C,
+    VEHICLE_SPEED               = 0x0D,
+    TIMING_ADVANCE              = 0x0E,
+    INTAKE_AIR_TEMP             = 0x0F,
+    MAF_FLOW                    = 0x10,
+    THROTTLE_POS                = 0x11,
+    COMMANDED_SECONDARY_AIR     = 0x12,
+    O2_SENSORS_PRESENT          = 0x13,
+    O2_SENSOR_1                 = 0x14,
+    O2_SENSOR_2                 = 0x15,
+    O2_SENSOR_3                 = 0x16,
+    O2_SENSOR_4                 = 0x17,
+    O2_SENSOR_5                 = 0x18,
+    O2_SENSOR_6                 = 0x19,
+    O2_SENSOR_7                 = 0x1A,
+    O2_SENSOR_8                 = 0x1B,
+    OBD_STANDARDS               = 0x1C,
+    O2_SENSORS_PRESENT_4BANKS   = 0x1D,
+    AUX_INPUT_STATUS            = 0x1E,
+    RUNTIME_SINCE_START         = 0x1F,
+    PIDS_SUPPORTED_21_40        = 0x20,
+    DISTANCE_WITH_MIL           = 0x21,
+    FUEL_RAIL_PRESSURE          = 0x22,
+    FUEL_RAIL_GAUGE_PRESSURE    = 0x23,
+    O2_SENSOR_1_WR              = 0x24,
+    O2_SENSOR_2_WR              = 0x25,
+    O2_SENSOR_3_WR              = 0x26,
+    O2_SENSOR_4_WR              = 0x27,
+    O2_SENSOR_5_WR              = 0x28,
+    O2_SENSOR_6_WR              = 0x29,
+    O2_SENSOR_7_WR              = 0x2A,
+    O2_SENSOR_8_WR              = 0x2B,
+    COMMANDED_EGR               = 0x2C,
+    EGR_ERROR                   = 0x2D,
+    COMMANDED_EVAP_PURGE        = 0x2E,
+    FUEL_LEVEL                  = 0x2F,
+    WARMUPS_SINCE_CLEARED       = 0x30,
+    DISTANCE_SINCE_CLEARED      = 0x31,
+    EVAP_VAPOR_PRESSURE         = 0x32,
+    BAROMETRIC_PRESSURE         = 0x33,
+    O2_SENSOR_1_WR_CURRENT      = 0x34,
+    O2_SENSOR_2_WR_CURRENT      = 0x35,
+    O2_SENSOR_3_WR_CURRENT      = 0x36,
+    O2_SENSOR_4_WR_CURRENT      = 0x37,
+    O2_SENSOR_5_WR_CURRENT      = 0x38,
+    O2_SENSOR_6_WR_CURRENT      = 0x39,
+    O2_SENSOR_7_WR_CURRENT      = 0x3A,
+    O2_SENSOR_8_WR_CURRENT      = 0x3B,
+    CATALYST_TEMP_B1S1          = 0x3C,
+    CATALYST_TEMP_B2S1          = 0x3D,
+    CATALYST_TEMP_B1S2          = 0x3E,
+    CATALYST_TEMP_B2S2          = 0x3F,
+    PIDS_SUPPORTED_41_60        = 0x40,
+    MONITOR_STATUS_DRIVE_CYCLE  = 0x41,
+    CONTROL_MODULE_VOLTAGE      = 0x42,
+    ABSOLUTE_LOAD_VALUE         = 0x43,
+    COMMANDED_EQUIV_RATIO       = 0x44,
+    RELATIVE_THROTTLE_POS       = 0x45,
+    AMBIENT_AIR_TEMP            = 0x46,
+    ABSOLUTE_THROTTLE_POS_B     = 0x47,
+    ABSOLUTE_THROTTLE_POS_C     = 0x48,
+    ACCELERATOR_PEDAL_POS_D     = 0x49,
+    ACCELERATOR_PEDAL_POS_E     = 0x4A,
+    ACCELERATOR_PEDAL_POS_F     = 0x4B,
+    COMMANDED_THROTTLE_ACTUATOR = 0x4C,
+    TIME_RUN_WITH_MIL           = 0x4D,
+    TIME_SINCE_CODES_CLEARED    = 0x4E,
+    MAX_VALUES                  = 0x4F,
+    MAX_MAF_FLOW                = 0x50,
+    FUEL_TYPE                   = 0x51,
+    ETHANOL_FUEL_PERCENT        = 0x52,
+    ABS_EVAP_VAPOR_PRESSURE     = 0x53,
+    EVAP_VAPOR_PRESSURE_ALT     = 0x54,
+    SHORT_TERM_SEC_O2_TRIM_13   = 0x55,
+    LONG_TERM_SEC_O2_TRIM_13    = 0x56,
+    SHORT_TERM_SEC_O2_TRIM_24   = 0x57,
+    LONG_TERM_SEC_O2_TRIM_24    = 0x58,
+    FUEL_RAIL_ABS_PRESSURE      = 0x59,
+    RELATIVE_ACCEL_PEDAL_POS    = 0x5A,
+    HYBRID_BATTERY_REMAINING    = 0x5B,
+    ENGINE_OIL_TEMP             = 0x5C,
+    FUEL_INJECTION_TIMING       = 0x5D,
+    ENGINE_FUEL_RATE            = 0x5E,
+    EMISSION_REQUIREMENTS       = 0x5F,
+    PIDS_SUPPORTED_61_80        = 0x60,
+    DEMAND_ENGINE_TORQUE        = 0x61,
+    ACTUAL_ENGINE_TORQUE        = 0x62,
+    ENGINE_REFERENCE_TORQUE     = 0x63,
+    ENGINE_PERCENT_TORQUE       = 0x64,
+    AUX_INPUT_OUTPUT_SUPPORTED  = 0x65,
+    MASS_AIR_FLOW_SENSOR        = 0x66,
+    ENGINE_COOLANT_TEMP_SENSOR  = 0x67,
+    INTAKE_AIR_TEMP_SENSOR      = 0x68,
+    EGR_ERROR_COMMANDED         = 0x69,
+    COMMANDED_DIESEL_INTAKE_AIR = 0x6A,
+    EXHAUST_GAS_RECIRC_TEMP     = 0x6B,
+    COMMANDED_THROTTLE_ACT_CTRL = 0x6C,
+    FUEL_PRESSURE_CONTROL_SYS   = 0x6D,
+    INJECTION_PRESSURE_CTRL_SYS = 0x6E,
+    TURBO_COMPRESSOR_INLET_PRES = 0x6F,
+    BOOST_PRESSURE_CONTROL      = 0x70,
+    VGT_CONTROL                 = 0x71,
+    WASTEGATE_CONTROL           = 0x72,
+    EXHAUST_PRESSURE            = 0x73,
+    TURBO_RPM                   = 0x74,
+    TURBO_TEMP_A                = 0x75,
+    TURBO_TEMP_B                = 0x76,
+    CHARGE_AIR_COOLER_TEMP      = 0x77,
+    EGT_BANK_1                  = 0x78,
+    EGT_BANK_2                  = 0x79,
+    DPF_DIFF_PRESSURE           = 0x7A,
+    DPF                         = 0x7B,
+    DPF_TEMP                    = 0x7C,
+    NOX_NTE_STATUS              = 0x7D,
+    PM_NTE_STATUS               = 0x7E,
+    ENGINE_RUN_TIME             = 0x7F,
+    PIDS_SUPPORTED_81_A0        = 0x80
+};
 
 #endif //OBDVG_OBDPIDS_H

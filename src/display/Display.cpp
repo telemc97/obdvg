@@ -1,4 +1,7 @@
 #include "Types.h"
+#include <cmath>
+#include <cstring>
+#include <cstdio>
 #include "pico/stdlib.h"
 #include "Config.h"
 #include "display/Display.h"
@@ -58,7 +61,11 @@ void Display::init() {
     uint8_t ctrl = 0x48 | ((brightness - 1) & 0x07);
     writeByte(TM1650_CTRL_ADDR, ctrl);
     sleep_ms(5);
-    setText("HELO");
+    
+    DisplayMsg msg{};
+    msg.dot = -1;
+    strncpy(msg.message, "HELO", 4);
+    setText(msg);
     update();
 
 }
@@ -72,17 +79,14 @@ void Display::setBrightness(uint8 level) {
     sleep_ms(2);
 }
 
-void Display::setText(const char *str4) {
-    if (!str4) {
-        memset(text, ' ', 4);
-    } else {
-        size_t len = strlen(str4);
-        if (len > 4) len = 4;
-        memcpy(text, str4, len);
-        if (len < 4)
-            memset(text + len, ' ', 4 - len);
-    }
+void Display::setText(const DisplayMsg &msg) {
+    memcpy(text, msg.message, 4);
     text[4] = '\0';
+    
+    memset(dots, 0, 4);
+    if (msg.dot >= 0 && msg.dot < 4) {
+        dots[msg.dot] = 0x80;
+    }
 }
 
 void Display::setDot(uint8 digitIndex, bool on) {
@@ -104,4 +108,31 @@ void Display::update() const {
         uint8 seg = getCharSeg(text[i]) | dots[i];
         writeByte(TM1650_ADDR_BASE + i, seg);
     }
+}
+
+DisplayMsg Display::floatToChars(float32 const value) {
+    DisplayMsg msg{};
+    msg.dot = -1;
+    memset(msg.message, ' ', 5); // Corrected size
+    msg.message[4] = '\0';
+
+    if (!std::isfinite(value)) {
+        strncpy(msg.message, "ERR ", 4);
+        return msg;
+    }
+
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f", value);
+
+    int msgPos = 0;
+    for (int i = 0; buf[i] != '\0' && msgPos < 4; i++) {
+        if (buf[i] == '.') {
+            if (msgPos > 0) {
+                msg.dot = msgPos - 1;
+            }
+        } else {
+            msg.message[msgPos++] = buf[i];
+        }
+    }
+    return msg;
 }

@@ -7,6 +7,11 @@
 
 #include "hardware/i2c.h"
 
+struct DisplayMsg {
+    int8 dot;
+    char message[5];
+};
+
 class Display {
 public:
     /**
@@ -34,11 +39,11 @@ public:
     void setBrightness(uint8 level);
 
     /**
-     * @brief Sets the 4-character text to be shown on the display.
+     * @brief Sets the text and dot to be shown on the display.
      * The text is not displayed until update() is called.
-     * @param str4 A null-terminated string of up to 4 characters.
+     * @param msg A DisplayMsg struct containing the 4-char message and dot index.
      */
-    void setText(const char *str4);
+    void setText(const DisplayMsg &msg);
 
     /**
      * @brief Controls the dot next to a digit on the display.
@@ -52,6 +57,8 @@ public:
      * This function should be called periodically to show the text set by setText().
      */
     void update() const;
+
+    static DisplayMsg floatToChars(float32 const value);
 
 private:
     /**
