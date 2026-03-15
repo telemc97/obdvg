@@ -28,6 +28,9 @@ namespace Config {
     // LOGGER Related
     constexpr uint8 LOG_LEVEL = 3;
 
+    // Simulation / Testing
+    constexpr bool TEST_SIMULATOR_ENABLED = true;
+
     // FreeRTOS Task Settings
 
     // OBD Task (Handles CAN communication)
