@@ -18,7 +18,7 @@ void obdTask(void* pvParameters) {
     (void)pvParameters;
     
     // Initialize UART-to-CAN bus
-    static UartCanBus can_bus(uart0, Config::CAN_UART_BAUD);
+    static UartCanBus can_bus(CAN_UART_INST, Config::CAN_UART_BAUD);
     gpio_set_function(Config::CAN_UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(Config::CAN_UART_RX_PIN, GPIO_FUNC_UART);
     
