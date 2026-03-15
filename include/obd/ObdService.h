@@ -9,6 +9,8 @@
 // Internal includes
 #include "can/CanFrame.h"
 
+#include "obd/ObdPids.h"
+
 /**
  * @class ObdService
  * @brief Provides static methods to handle OBD-II communications.
@@ -23,7 +25,7 @@ public:
      * @param pid The Parameter ID (PID) to request.
      * @param[out] tx The CAN frame to be populated with the request data.
      */
-    static void buildCanFrameForPID(uint8 pid, CanFrame &tx);
+    static void buildCanFrameForPID(ObdPid pid, CanFrame &tx);
 
     /**
      * @brief Polls and decodes a response from a received CAN frame.
@@ -32,7 +34,7 @@ public:
      * @param[out] valueOut The decoded value from the response.
      * @return True if the response is valid and successfully decoded, false otherwise.
      */
-    static bool pollResponse(const CanFrame &rx, uint8 pid, float32 &valueOut);
+    static bool pollResponse(const CanFrame &rx, ObdPid pid, float32 &valueOut);
 
 private:
     /**
@@ -41,7 +43,7 @@ private:
      * @param requestedPid The PID that was requested.
      * @return True if the frame is a valid response, false otherwise.
      */
-    static bool isValidResponse(const CanFrame &frame, uint8 requestedPid);
+    static bool isValidResponse(const CanFrame &frame, ObdPid requestedPid);
 };
 
 #endif //OBDVG_OBDSERVICE_H

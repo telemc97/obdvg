@@ -28,7 +28,7 @@ class UartCanBus {
          * @param frame The CanFrame object to send.
          * @return True if the frame was encoded and sent successfully, false on encoding error.
          */
-        boolean send(const CanFrame& frame);
+        bool send(const CanFrame& frame);
 
         /**
          * @brief Receives and decodes a CAN frame from the UART bus.
@@ -38,14 +38,14 @@ class UartCanBus {
          * @param[out] frame Reference to a CanFrame object to store the received frame.
          * @return True if a complete frame was received, false otherwise.
          */
-        boolean receive(CanFrame& frame);
+        bool receive(CanFrame& frame);
 
         /**
          * @brief Checks if the UART-to-CAN adapter is connected and responsive.
          * Sends an "AT" command and waits for an "OK" response.
          * @return True if the adapter responds correctly, false otherwise.
          */
-        boolean isConnected() const;
+        bool isConnected() const;
 
     private:
         uart_inst_t* uart_;

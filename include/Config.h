@@ -5,57 +5,78 @@
 
 // Internal includes
 #include "FreeRTOSConfig.h"
+#include "obd/ObdPids.h"
+#include "obd/ObdLogMessage.h"
 
-namespace  Config {
+namespace Config {
 
-    // i2c Bus Related
-    constexpr uint32 I2C_FREQUENCY = 100 * 1000;
-    constexpr uint8 I2C_SDA_PIN = 2;
-    constexpr uint8 I2C_SCL_PIN = 3;
+    // CAN UART Related (Waveshare TTL UART to CAN)
+    constexpr int32 CAN_UART_BAUD = 115200;
+    constexpr uint8 CAN_UART_TX_PIN = 0; // Default UART0 TX
+    constexpr uint8 CAN_UART_RX_PIN = 1; // Default UART0 RX
 
-    // CAN Related
-    constexpr int32 CAN_BAUD = 115200;
+    // SD Card SPI Related
+    constexpr uint8 SD_SPI_SCK_PIN = 18;
+    constexpr uint8 SD_SPI_MOSI_PIN = 19;
+    constexpr uint8 SD_SPI_MISO_PIN = 16;
+    constexpr uint8 SD_SPI_CS_PIN = 17;
+    #define SD_SPI_INST spi0
 
-    // MPU Related
-    constexpr uint32 MPU_I2C_TIMEOUT = 100000;
-
-    // DISPLAY Related
-    constexpr uint32 DISPLAY_I2C_TIMEOUT = 100000;
+    // Bluetooth Related
+    const char* const BT_DEVICE_NAME = "OBDvg-ELM327";
 
     // LOGGER Related
     constexpr uint8 LOG_LEVEL = 3;
 
+    // Simulation / Testing
+    constexpr bool TEST_SIMULATOR_ENABLED = true;
+
     // FreeRTOS Task Settings
-    // CAN TASK
-    constexpr uint8 CAN_TASK_PRIORITY = configMAX_PRIORITIES - 1;
-    constexpr uint32 CAN_TASK_STACK_SIZE = 2048;
-    constexpr uint32 CAN_V_TASK_DELAY = 500;
 
-    // OBD TASK
-    constexpr uint8 OBD_TASK_PRIORITY = configMAX_PRIORITIES - 2;
-    constexpr uint32 OBD_TASK_STACK_SIZE = 2048;
-    constexpr uint32 OBD_V_TASK_DELAY = 500;
+    // OBD Task (Handles CAN communication)
+    constexpr uint8 OBD_TASK_PRIORITY = configMAX_PRIORITIES - 1;
+    constexpr uint32 OBD_TASK_STACK_SIZE = 4096;
+    constexpr uint32 OBD_TASK_DELAY_MS = 100;
 
-    // MPU TASK
-    constexpr uint8 MPU_TASK_PRIORITY = configMAX_PRIORITIES - 1;
-    constexpr uint32 MPU_TASK_STACK_SIZE = 4096;
-    constexpr uint32 MPU_V_TASK_DELAY = 500;
+    // ELM327 Bluetooth Task
+    constexpr uint8 BT_TASK_PRIORITY = configMAX_PRIORITIES - 2;
+    constexpr uint32 BT_TASK_STACK_SIZE = 4096;
+    constexpr uint32 BT_TASK_DELAY_MS = 20;
 
-    // DISPLAY TASK
-    constexpr uint8 DISPLAY_TASK_PRIORITY = configMAX_PRIORITIES - 1;
-    constexpr uint32 DISPLAY_TASK_STACK_SIZE = 4096;
-    constexpr uint32 DISPLAY_V_TASK_DELAY = 500;
+    // SD Logging Task
+    constexpr uint8 LOGGING_TASK_PRIORITY = configMAX_PRIORITIES - 3;
+    constexpr uint32 LOGGING_TASK_STACK_SIZE = 4096;
+    constexpr uint32 LOGGING_TASK_DELAY_MS = 500;
 
+    // Queue Sizes
+    constexpr uint8 CAN_RX_QUEUE_SIZE = 64;
+    constexpr uint8 CAN_TX_QUEUE_SIZE = 64;
+    constexpr uint8 LOG_QUEUE_SIZE = 128;
 
-    // Queue Lengths
-    constexpr uint8 CAN_TX_QUEUE_LENGTH = 8;
-    constexpr uint8 CAN_RX_QUEUE_LENGTH = 8;
-    constexpr uint8 MPU_DATA_QUEUE_LENGTH = 8;
-    constexpr uint8 DISPLAY_QUEUE_LENGTH = 16;
-    constexpr uint8 DISPLAY_MSG_SIZE = 16;
+    // Logging Mapping: Link a PID to a field in ObdLogMessage
+    struct LogMapping {
+        ObdPid pid;
+        float32 ObdLogMessage::*field;
+    };
 
+    static const LogMapping PID_LOG_CONFIG[] = {
+        {ObdPid::ENGINE_RPM,          &ObdLogMessage::engine_speed},
+        {ObdPid::VEHICLE_SPEED,       &ObdLogMessage::vehicle_speed},
+        {ObdPid::ENGINE_COOLANT_TEMP, &ObdLogMessage::engine_coolant_temp},
+        {ObdPid::ENGINE_OIL_TEMP,     &ObdLogMessage::engine_oil_temp},
+        {ObdPid::THROTTLE_POS,        &ObdLogMessage::throttle_pos},
+        {ObdPid::ENGINE_LOAD,         &ObdLogMessage::engine_load},
+        {ObdPid::INTAKE_MAP,          &ObdLogMessage::intake_map},
+        {ObdPid::INTAKE_AIR_TEMP,     &ObdLogMessage::intake_air_temp},
+        {ObdPid::AMBIENT_AIR_TEMP,    &ObdLogMessage::ambient_air_temp},
+        {ObdPid::CATALYST_TEMP_B1S1,  &ObdLogMessage::catalyst_temp},
+        {ObdPid::SHORT_TERM_FUEL_TRIM_1, &ObdLogMessage::st_fuel_trim_1},
+        {ObdPid::LONG_TERM_FUEL_TRIM_1,  &ObdLogMessage::lt_fuel_trim_1},
+        {ObdPid::ENGINE_FUEL_RATE,    &ObdLogMessage::engine_fuel_rate}
+    };
+
+    static const uint8 PID_LOG_COUNT = sizeof(PID_LOG_CONFIG) / sizeof(PID_LOG_CONFIG[0]);
 
 };
-
 
 #endif //OBDVG_CONFIG_H

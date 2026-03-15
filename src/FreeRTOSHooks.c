@@ -15,20 +15,10 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
     static StaticTask_t xIdleTaskTCB;
     static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 
-    /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
-       state will be stored. */
     *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
-
-    /* Pass out the array that will be used as the Idle task's stack. */
     *ppxIdleTaskStackBuffer = uxIdleTaskStack;
-
-    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
-       Note that, as the array is necessarily of type StackType_t,
-       configMINIMAL_STACK_SIZE is specified in words, not bytes. */
     *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
 }
-
-/*-----------------------------------------------------------*/
 
 /* configSUPPORT_STATIC_ALLOCATION and configUSE_TIMERS are both set to 1, so the
    application must provide an implementation of vApplicationGetTimerTaskMemory()
@@ -43,23 +33,36 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
     static StaticTask_t xTimerTaskTCB;
     static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 
-    /* Pass out a pointer to the StaticTask_t structure in which the Timer
-       task's state will be stored. */
     *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
-
-    /* Pass out the array that will be used as the Timer task's stack. */
     *ppxTimerTaskStackBuffer = uxTimerTaskStack;
-
-    /* Pass out the size of the array pointed to by *ppxTimerTaskStackBuffer.
-       Note that, as the array is necessarily of type StackType_t,
-      configTIMER_TASK_STACK_DEPTH is specified in words, not bytes. */
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
 
-void vApplicationStackOverflowHook( TaskHandle_t xTask,
-                                      char *pcTaskName ){
+void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
+{
+	( void ) pcTaskName;
+	( void ) xTask;
+
+	/* Run time stack overflow checking is performed if
+	configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
+	function is called if a stack overflow is detected. */
 	printf("----------------------------------------------\n");
-	printf("STACK OVERFLOW on %s\n", pcTaskName);
+	printf("STACK OVERFLOW: %s\n", pcTaskName);
+	printf("----------------------------------------------\n");
+	taskDISABLE_INTERRUPTS();
+	for( ;; );
+}
+
+void vApplicationMallocFailedHook( void )
+{
+	/* vApplicationMallocFailedHook() will only be called if
+	configUSE_MALLOC_FAILED_HOOK is set to 1 in FreeRTOSConfig.h.  It is a hook
+	function that will get called if a call to pvPortMalloc() fails.
+	pvPortMalloc() is called internally by the kernel whenever a task, queue,
+	timer or semaphore is created.  It is also called by various HTTP client
+	and server functions. */
+	printf("----------------------------------------------\n");
+	printf("MALLOC FAILED\n");
 	printf("----------------------------------------------\n");
 	taskDISABLE_INTERRUPTS();
 	for( ;; );
@@ -67,14 +70,8 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 
 void vAssertCalled( const char *pcFile, uint32_t ulLine ){
 	printf("----------------------------------------------\n");
-	printf("ASSERT FAILED %s line: %d\n", pcFile, ulLine);
+	printf("ASSERT FAILED %s line: %d\n", (char*)pcFile, (int)ulLine);
 	printf("----------------------------------------------\n");
 	taskDISABLE_INTERRUPTS();
 	for( ;; );
-}
-
-
-void *pvPortRealloc( void *pv, size_t size ){
-	  vPortFree ( pv );
-	  return pvPortMalloc( size );
 }
