@@ -20,10 +20,10 @@
 #### 1. Waveshare WS-TTL-CAN (UART)
 | Pico 2 W Pin | Function | CAN Module Pin |
 |---|---|---|
-| **GP0** | UART0 TX | RXD |
-| **GP1** | UART0 RX | TXD |
+| **GP4** | UART1 TX | RXD |
+| **GP5** | UART1 RX | TXD |
 | **GND** | Ground | GND |
-| **3V3/5V** | Power | VCC (Check module version) |
+| **3V3/5V** | Power | VCC |
 
 #### 2. MH-SD Card Module (SPI)
 | Pico 2 W Pin | Function | SD Module Pin |
@@ -34,6 +34,14 @@
 | **GP17** | SPI0 CS (Chip Select) | CS |
 | **GND** | Ground | GND |
 | **3V3/5V** | Power | VCC |
+
+#### 3. OBD-II Cable Connectivity
+| CAN Module Pin | Function | OBD-II Pin |
+|---|---|---|
+| **CANH** | CAN High | Pin 6 |
+| **CANL** | CAN Low | Pin 14 |
+| **GND** | Ground | Pin 4/5 |
+| **VCC** | Battery Power | Pin 16 (Optional, if using 12V to 5V converter) |
 
 ### Software Description
 
