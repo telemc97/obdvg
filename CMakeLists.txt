@@ -6,7 +6,7 @@ if (DEBUG)
   set(DCMAKE_BUILD_TYPE Debug)
 endif ()
 
-  # pico-sdk before project
+# pico-sdk before project
 # Setting variables
 set(PICO_BOARD pico2_w)
 set(PICO_PLATFORM rp2350-arm-s)
@@ -36,6 +36,7 @@ target_compile_definitions(freertos_config INTERFACE projCOVERAGE_TEST=0)
 pico_sdk_init()
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/FreeRTOS-Kernel)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/pico_fatfs)
 set(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/FreeRTOS-Kernel)
 include(FreeRTOS_Kernel_import.cmake)
 
@@ -67,11 +68,20 @@ target_include_directories(obdvg SYSTEM PRIVATE
 
 target_link_libraries(obdvg
     pico_stdlib
-    hardware_i2c
+    hardware_spi
     hardware_gpio
+    hardware_uart
+    pico_cyw43_arch_lwip_sys_freertos
+    pico_btstack_ble
+    pico_btstack_cyw43
+    pico_fatfs
     FreeRTOS-Kernel
     FreeRTOS-Kernel-Heap4
 )
+
+# Enable Bluetooth GATT Header Generation
+pico_btstack_make_gatt_header(obdvg PRIVATE "${CMAKE_CURRENT_LIST_DIR}/resources/elm327.gatt")
+
 
 # Enable USB/serial stdio
 pico_enable_stdio_usb(obdvg 1)

@@ -1,45 +1,62 @@
-#include "Types.h"
+#include "pico/stdlib.h"
+#include "pico/cyw43_arch.h"
+#include "btstack.h"
 
+#include "Types.h"
 #include <string>
 
 #include "FreeRTOS.h"
-#include "FreeRTOSConfig.h"
-#include "pico/stdio.h"
-#include "pico/stdlib.h"
 #include "task.h"
+#include "queue.h"
 
 #include "Config.h"
 #include "can/CanFrame.h"
 #include "can/UartCanBus.h"
-#include "display/Display.h"
-#include "mpu/Mpu6050.h"
 #include "obd/ObdService.h"
+#include "obd/ObdLogMessage.h"
 #include "util/Logger.h"
 #include "util/Utils.h"
 
-#include "ObdLogTask.cpp"
-#include "ObdDisplayTask.cpp"
-#include "Mpu6050Task.cpp"
+#include "ObdTask.cpp"
+#include "BluetoothTask.cpp"
+#include "SdLoggingTask.cpp"
+
+// Global Queues
+QueueHandle_t obdDataQueue = nullptr;
+QueueHandle_t canTxQueue = nullptr;
+QueueHandle_t canRxQueue = nullptr;
 
 int main() {
-    boolean stdioInititialized =  stdio_init_all();
-    if (!stdioInititialized) {
-        Logger::instance().log(LogLevel::ERROR, "Failed to initialize pico stdio");
-        return 0;
+    // 1. Initialize hardware
+    stdio_init_all();
+    
+    // Give some time for USB serial to connect
+    sleep_ms(2000);
+    
+    Logger::instance().log("OBDvg Starting...");
+
+    // 2. Create Queues
+    obdDataQueue = xQueueCreate(Config::LOG_QUEUE_SIZE, sizeof(ObdLogMessage));
+    canTxQueue = xQueueCreate(Config::CAN_TX_QUEUE_SIZE, sizeof(CanFrame));
+    canRxQueue = xQueueCreate(Config::CAN_RX_QUEUE_SIZE, sizeof(CanFrame));
+
+    if (obdDataQueue == nullptr || canTxQueue == nullptr || canRxQueue == nullptr) {
+        Logger::instance().log("Failed to create queues!");
+        return -1;
     }
 
-    Utils::scanI2cBus(i2c1, Config::I2C_SDA_PIN, Config::I2C_SCL_PIN);
+    // 3. Create Tasks
+    xTaskCreate(obdTask, "OBD_TASK", Config::OBD_TASK_STACK_SIZE, nullptr, Config::OBD_TASK_PRIORITY, nullptr);
+    xTaskCreate(bluetoothTask, "BT_TASK", Config::BT_TASK_STACK_SIZE, nullptr, Config::BT_TASK_PRIORITY, nullptr);
+    xTaskCreate(sdLoggingTask, "SD_LOG_TASK", Config::LOGGING_TASK_STACK_SIZE, nullptr, Config::LOGGING_TASK_PRIORITY, nullptr);
 
-    Utils::initI2C(i2c1, Config::I2C_FREQUENCY, Config::I2C_SDA_PIN, Config::I2C_SCL_PIN);
-
-    static UartCanBus can_bus = UartCanBus(uart0, Config::CAN_BAUD);
-
-    xTaskCreate(obdLogTask, "OBD_LOG", Config::OBD_LOG_TASK_STACK_SIZE, &can_bus, Config::OBD_LOG_TASK_PRIORITY, nullptr);
-    xTaskCreate(obdDisplayTask, "OBD_DISPLAY", Config::OBD_DISPLAY_TASK_STACK_SIZE, &can_bus, Config::OBD_DISPLAY_TASK_PRIORITY, nullptr);
-    xTaskCreate(mpu6050Task, "MPU6050", Config::MPU_TASK_STACK_SIZE, nullptr, Config::MPU_TASK_PRIORITY, nullptr);
-
+    // 4. Start Scheduler
     vTaskStartScheduler();
 
-    // Should never reach here
+    while (true) {
+        // Should never reach here
+    }
     return 0;
 }
+
+

@@ -3,6 +3,8 @@
 
 #include <array>
 #include <string>
+#include <vector>
+#include <cstdint>
 
 #define int8   signed char
 #define int16  short
@@ -19,13 +21,9 @@
 #define float32  float
 #define float64  double
 
-// Boolean (C++ already has bool, but sometimes for C interop)
-#define boolean  unsigned char
-
-// Macros for std::array and std::string
+// Macros for std::array, std::vector and std::string
 #define Array(type, size)  std::array<type, size>
+#define Vector(type)       std::vector<type>
 #define String             std::string
-
-#define TRUE
 
 #endif //OBDVG_TYPES_H

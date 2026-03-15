@@ -7,3 +7,6 @@
 [submodule "debug/openocd"]
 	path = debug/openocd
 	url = https://github.com/raspberrypi/openocd.git
+[submodule "libs/pico_fatfs"]
+	path = libs/pico_fatfs
+	url = https://github.com/elehobica/pico_fatfs.git

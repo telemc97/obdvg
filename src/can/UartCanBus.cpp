@@ -14,7 +14,7 @@ UartCanBus::UartCanBus(uart_inst_t* uart, const uint32 baud)
     uart_init(uart_, baud);
 }
 
-boolean UartCanBus::send(const CanFrame& frame) {
+bool UartCanBus::send(const CanFrame& frame) {
     char buffer[32];
     int len = snprintf(buffer, sizeof(buffer), "t%03X%d", frame.id, frame.dlc);
     if (len < 0) {
@@ -34,7 +34,7 @@ boolean UartCanBus::send(const CanFrame& frame) {
     return true;
 }
 
-boolean UartCanBus::receive(CanFrame& frame) {
+bool UartCanBus::receive(CanFrame& frame) {
     while (uart_is_readable(uart_)) {
         char c = uart_getc(uart_);
         if (c == '\r') {
@@ -69,7 +69,7 @@ boolean UartCanBus::receive(CanFrame& frame) {
     return false;
 }
 
-boolean UartCanBus::isConnected() const {
+bool UartCanBus::isConnected() const {
     const char* cmd = "AT\r";
     uart_write_blocking(uart_, (const uint8*)cmd, strlen(cmd));
 

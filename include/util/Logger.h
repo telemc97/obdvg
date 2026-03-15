@@ -1,15 +1,12 @@
 #ifndef OBDVG_LOGGER_H
 #define OBDVG_LOGGER_H
 
+#include <string>
+#include <vector>
+#include <cstdio>
 #include "Types.h"
 
-#include <string>
-#include <cstdio>
-#include <vector>
-
-#include "Config.h"
-
-// Simple log levels
+// Keep LogLevel for backward compatibility
 enum class LogLevel {
     ERROR,
     WARN,
@@ -20,7 +17,7 @@ enum class LogLevel {
 /**
  * @brief A simple singleton logger class.
  *
- * This logger provides a simple way to log messages at different levels.
+ * This logger provides a simple way to log messages.
  * It supports formatted strings in a printf-like manner.
  */
 class Logger {
@@ -30,37 +27,46 @@ public:
      * @return A reference to the Logger instance.
      */
     static Logger& instance() {
-        static Logger logger;
-        logger.setLevel(Config::LOG_LEVEL);
+        static Logger logger(80);
         return logger;
     }
 
     /**
-     * @brief Sets the logging level.
-     *
-     * Messages with a level numerically higher (less important) than the set level will not be logged.
-     *
-     * @param level The log level to set.
-     */
-    void setLevel(LogLevel level);
-
-    /**
-     * @brief Sets the logging level using an integer.
-     *
-     * 0 = ERROR, 1 = WARN, 2 = INFO, 3 = DEBUG.
-     * Invalid integers are ignored.
-     *
-     * @param level The integer representation of the log level.
-     */
-    void setLevel(int level);
-
-    /**
      * @brief Logs a simple string message.
      *
-     * @param level The log level of the message.
      * @param msg The message to log.
      */
-    void log(LogLevel level, const String& msg) const;
+    void log(const String& msg) const;
+
+    /**
+     * @brief Backward compatibility: Logs a simple string message with a log level.
+     * 
+     * @param level The log level (ignored in this version).
+     * @param msg The message to log.
+     */
+    void log(LogLevel level, const String& msg) const {
+        (void)level;
+        log(msg);
+    }
+
+    /**
+     * @brief Prints a separator line to the console.
+     *        This is useful for sectioning off different parts of the log output.
+     */
+    void print_separator() const;
+
+    /**
+     * @brief Prints a specified number of empty lines to the console.
+     *        This can be used to add vertical spacing to the log output.
+     * @param lines_to_print The number of empty lines to print. Defaults to 1.
+     */
+    void print_empty_line(int8 lines_to_print = 1) const;
+
+    /**
+     * @brief Sets a new character limit for line breaking.
+     * @param limit The new character limit.
+     */
+    void setCharLimit(uint32 limit);
 
     /**
      * @brief Logs a formatted string message.
@@ -69,40 +75,55 @@ public:
      * arguments.
      *
      * @tparam Args The types of the arguments.
-     * @param level The log level of the message.
      * @param format The format string.
      * @param args The arguments for the format string.
      */
     template<typename... Args>
-    void log(LogLevel level, const char* format, Args... args) const {
-        if (level > currentLevel) {
-            return;
-        }
-
+    void log(const char* format, Args... args) const {
         int size = std::snprintf(nullptr, 0, format, args...);
         if (size < 0) {
             return;
         }
 
-        std::vector<char> buf(size + 1);
+        Vector(char) buf(size + 1);
         std::snprintf(buf.data(), buf.size(), format, args...);
 
-        log(level, std::string(buf.data()));
+        log(String(buf.data()));
     }
+
+    /**
+     * @brief Backward compatibility: Logs a formatted string message with a log level.
+     *
+     * @tparam Args The types of the arguments.
+     * @param level The log level (ignored in this version).
+     * @param format The format string.
+     * @param args The arguments for the format string.
+     */
+    template<typename... Args>
+    void log(LogLevel level, const char* format, Args... args) const {
+        (void)level;
+        log(format, args...);
+    }
+
+    // Dummy for backward compatibility
+    void setLevel(LogLevel level) { (void)level; }
+    void setLevel(int level) { (void)level; }
 
 private:
     /**
      * @brief Private constructor for the singleton pattern.
+     * @param limit The character limit for line breaking.
      */
-    Logger();
+    Logger(uint32 limit = 80);
 
     /**
-     * @brief Prints the prefix for a log message (e.g., "[INFO] ").
-     * @param level The log level of the message.
+     * @brief Breaks a string into multiple lines at a specified character limit without breaking words.
+     * @param str The string to break.
+     * @return A vector of strings, where each string is a line.
      */
-    static void printPrefix(LogLevel level);
+    Vector(String) break_line(const String& str) const;
 
-    LogLevel currentLevel;
+    uint32 char_limit;
 };
 
 #endif //OBDVG_LOGGER_H
