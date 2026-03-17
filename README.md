@@ -13,6 +13,9 @@
 - **MH-SD Card Module** (SPI Interface)
 - **Waveshare Buck Converter** (5.0V 4A)
 
+![Hardware Layout](img/hardware.JPG)
+*Testing hardware layout: breadboard with Pico 2 W (one for code, one for debugging), TTL-UART-to-CAN module, and OBD-II port.*
+
 ### Hardware Connectivity
 
 ---
