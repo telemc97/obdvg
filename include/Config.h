@@ -14,6 +14,7 @@ namespace Config {
     constexpr int32 CAN_UART_BAUD = 115200;
     constexpr uint8 CAN_UART_TX_PIN = 4; // UART1 TX
     constexpr uint8 CAN_UART_RX_PIN = 5; // UART1 RX
+    constexpr int32 CAN_UART_TIMEOUT_MS = 100;
     #define CAN_UART_INST uart1
 
     // SD Card SPI Related
