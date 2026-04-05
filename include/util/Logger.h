@@ -39,14 +39,15 @@ public:
     void log(const String& msg) const;
 
     /**
-     * @brief Backward compatibility: Logs a simple string message with a log level.
+     * @brief Logs a simple string message with a log level.
      * 
-     * @param level The log level (ignored in this version).
+     * @param level The log level.
      * @param msg The message to log.
      */
     void log(LogLevel level, const String& msg) const {
-        (void)level;
-        log(msg);
+        if (level <= current_level) {
+            log(msg);
+        }
     }
 
     /**
@@ -80,7 +81,7 @@ public:
      */
     template<typename... Args>
     void log(const char* format, Args... args) const {
-        int size = std::snprintf(nullptr, 0, format, args...);
+        int32 size = std::snprintf(nullptr, 0, format, args...);
         if (size < 0) {
             return;
         }
@@ -92,22 +93,35 @@ public:
     }
 
     /**
-     * @brief Backward compatibility: Logs a formatted string message with a log level.
+     * @brief Logs a formatted string message with a log level.
      *
      * @tparam Args The types of the arguments.
-     * @param level The log level (ignored in this version).
+     * @param level The log level.
      * @param format The format string.
      * @param args The arguments for the format string.
      */
     template<typename... Args>
     void log(LogLevel level, const char* format, Args... args) const {
-        (void)level;
-        log(format, args...);
+        if (level <= current_level) {
+            log(format, args...);
+        }
     }
 
-    // Dummy for backward compatibility
-    void setLevel(LogLevel level) { (void)level; }
-    void setLevel(int level) { (void)level; }
+    /**
+     * @brief Sets the log level.
+     * @param level The new log level.
+     */
+    void setLevel(LogLevel level) { current_level = level; }
+    
+    /**
+     * @brief Sets the log level using an integer.
+     * @param level The new log level.
+     */
+    void setLevel(int32 level) { 
+        if (level >= 0 && level <= static_cast<int32>(LogLevel::DEBUG)) {
+            current_level = static_cast<LogLevel>(level);
+        }
+    }
 
 private:
     /**
@@ -124,6 +138,7 @@ private:
     Vector(String) break_line(const String& str) const;
 
     uint32 char_limit;
+    LogLevel current_level;
 };
 
 #endif //OBDVG_LOGGER_H
