@@ -36,6 +36,17 @@ pipeline {
             }
         }
 
+        stage('Run Unit Tests') {
+            steps {
+                script {
+                    sh 'mkdir -p build_tests'
+                    sh 'cmake -S tests -B build_tests'
+                    sh 'cmake --build build_tests'
+                    sh './build_tests/obdvg_unit_tests'
+                }
+            }
+        }
+
         stage('Create a Build Folder') {
             steps {
                 script {
