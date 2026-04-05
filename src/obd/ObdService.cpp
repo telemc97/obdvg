@@ -7,12 +7,52 @@
 #include "obd/ObdService.h"
 #include "obd/PidDecoder.h"
 
+// OBD-II Constants
+static constexpr uint8 OBD_PCI_SINGLE_FRAME = 0x02;
+static constexpr uint8 OBD_MODE_SHOW_CURRENT = 0x01;
+static constexpr uint8 OBD_RESPONSE_OFFSET = 0x40;
+
+/**
+ * @brief Returns the expected data length (number of bytes after PID) for a given PID.
+ */
+static int32 getExpectedDataLength(ObdPid pid) {
+    switch (pid) {
+        case ObdPid::ENGINE_RPM:
+        case ObdPid::MAF_FLOW:
+        case ObdPid::RUNTIME_SINCE_START:
+        case ObdPid::DISTANCE_WITH_MIL:
+        case ObdPid::FUEL_RAIL_PRESSURE:
+        case ObdPid::FUEL_RAIL_GAUGE_PRESSURE:
+        case ObdPid::DISTANCE_SINCE_CLEARED:
+        case ObdPid::EVAP_VAPOR_PRESSURE:
+        case ObdPid::CATALYST_TEMP_B1S1:
+        case ObdPid::CATALYST_TEMP_B2S1:
+        case ObdPid::CATALYST_TEMP_B1S2:
+        case ObdPid::CATALYST_TEMP_B2S2:
+        case ObdPid::CONTROL_MODULE_VOLTAGE:
+        case ObdPid::ABSOLUTE_LOAD_VALUE:
+        case ObdPid::COMMANDED_EQUIV_RATIO:
+        case ObdPid::ABS_EVAP_VAPOR_PRESSURE:
+        case ObdPid::EVAP_VAPOR_PRESSURE_ALT:
+        case ObdPid::FUEL_RAIL_ABS_PRESSURE:
+        case ObdPid::TIME_RUN_WITH_MIL:
+        case ObdPid::TIME_SINCE_CODES_CLEARED:
+        case ObdPid::FUEL_INJECTION_TIMING:
+        case ObdPid::ENGINE_FUEL_RATE:
+        case ObdPid::ENGINE_REFERENCE_TORQUE:
+            return 2; // 2-byte PIDs
+        default:
+            return 1; // 1-byte PIDs (default)
+    }
+}
+
 void ObdService::buildCanFrameForPID(ObdPid pid, CanFrame &tx) {
   tx.id = 0x7DF;
   tx.dlc = 8;
+  tx.isExtended = false;
   std::memset(tx.data.data(), 0, 8);
-  tx.data[0] = 0x02;
-  tx.data[1] = 0x01;
+  tx.data[0] = OBD_PCI_SINGLE_FRAME;
+  tx.data[1] = OBD_MODE_SHOW_CURRENT;
   tx.data[2] = static_cast<uint8>(pid);
 }
 
@@ -171,13 +211,26 @@ bool ObdService::pollResponse(const CanFrame &rx, ObdPid pid, float32 &valueOut)
 }
 
 bool ObdService::isValidResponse(const CanFrame &frame, ObdPid requestedPid) {
-  bool valid = false;
-  // Check if frame ID is in OBD-II response range and has enough data
-  if (frame.id >= 0x7E8 && frame.id <= 0x7EF && frame.dlc >= 3) {
-    const uint8 svc = frame.data[1] & 0x3F;
+  // Check if frame ID is in OBD-II response range
+  if (frame.id >= 0x7E8 && frame.id <= 0x7EF) {
+    // DLC must be at least 3 (Length, Mode, PID)
+    if (frame.dlc < 3) return false;
+
+    const uint8 pciLen = frame.data[0];
+    const uint8 rxMode = frame.data[1];
     const uint8 rxPid = frame.data[2];
-    // Service must be 0x01 and PID must match the requested PID
-    valid = (svc == 0x01 && rxPid == static_cast<uint8>(requestedPid));
+
+    // ISO 15765-2 Single Frame length must match (Service + PID + Data)
+    const int32 expectedDataLen = getExpectedDataLength(requestedPid);
+    if (pciLen != (1 + 1 + expectedDataLen)) return false;
+
+    // CAN DLC must be sufficient to hold the PCI length + 1 (for the length byte itself)
+    if (frame.dlc < (pciLen + 1)) return false;
+
+    // Service must be Mode 01 + Response Offset (0x40) and PID must match
+    if (rxMode == (OBD_MODE_SHOW_CURRENT + OBD_RESPONSE_OFFSET) && rxPid == static_cast<uint8>(requestedPid)) {
+        return true;
+    }
   }
-  return valid;
+  return false;
 }
