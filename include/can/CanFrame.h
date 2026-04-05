@@ -8,6 +8,7 @@
 struct CanFrame {
     uint32 id{0};
     uint8 dlc{0};
+    bool isExtended{false};
     Array(uint8, 8) data{};
 };
 

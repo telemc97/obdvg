@@ -41,7 +41,7 @@ set(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/FreeRTOS-Kernel)
 include(FreeRTOS_Kernel_import.cmake)
 
 file(GLOB obdvg_MAIN CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_LIST_DIR}/app/main.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/app/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/src/**/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/src/FreeRTOSHooks.c"
 )
@@ -59,6 +59,7 @@ set_target_properties(obdvg PROPERTIES
 # Include headers
 target_include_directories(obdvg PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include
+    ${CMAKE_CURRENT_LIST_DIR}/app
 )
 
 target_include_directories(obdvg SYSTEM PRIVATE

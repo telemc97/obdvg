@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <sstream>
 
-Logger::Logger(uint32 limit) : char_limit(limit) {}
+Logger::Logger(uint32 limit) : char_limit(limit), current_level(LogLevel::DEBUG) {}
 
 void Logger::setCharLimit(uint32 limit) {
     this->char_limit = limit;
@@ -15,7 +15,18 @@ Vector(String) Logger::break_line(const String& str) const {
 
     String current_line;
     while (ss >> word) {
-        if (current_line.length() + word.length() + 1 > char_limit) {
+        // If a word is longer than the limit, we must split it.
+        while (word.length() > char_limit) {
+            if (!current_line.empty()) {
+                lines.push_back(current_line);
+                current_line = "";
+            }
+            lines.push_back(word.substr(0, char_limit));
+            word = word.substr(char_limit);
+        }
+
+        // Standard line building
+        if (!current_line.empty() && current_line.length() + word.length() + 1 > char_limit) {
             lines.push_back(current_line);
             current_line = word;
         } else {
@@ -49,7 +60,7 @@ void Logger::print_separator() const {
 }
 
 void Logger::print_empty_line(int8 lines_to_print) const {
-    for (int i = 0; i < lines_to_print; ++i) {
+    for (int32 i = 0; i < lines_to_print; ++i) {
         log("");
     }
 }

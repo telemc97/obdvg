@@ -6,22 +6,24 @@
 #include <vector>
 #include <cstdint>
 
-#define int8   signed char
-#define int16  short
-#define int32  int
-#define int64  long long
+// Integer types
+using int8  = int8_t;
+using int16 = int16_t;
+using int32 = int32_t;
+using int64 = int64_t;
 
 // Unsigned integer types
-#define uint8   unsigned char
-#define uint16  unsigned short
-#define uint32  unsigned int
-#define uint64  unsigned long long
+using uint8  = uint8_t;
+using uint16 = uint16_t;
+using uint32 = uint32_t;
+using uint64 = uint64_t;
 
 // Floating point
-#define float32  float
-#define float64  double
+using float32 = float;
+using float64 = double;
 
 // Macros for std::array, std::vector and std::string
+// Note: These are kept as macros to support the project's specialized syntax
 #define Array(type, size)  std::array<type, size>
 #define Vector(type)       std::vector<type>
 #define String             std::string

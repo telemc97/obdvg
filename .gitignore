@@ -5,3 +5,4 @@ build
 # Lib related .cmake
 FreeRTOS_Kernel_import.cmake
 pico_sdk_import.cmake
+/build_tests/

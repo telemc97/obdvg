@@ -69,37 +69,38 @@ String ELM327::handleAtCommand(const String& cmd) {
     } else if (cmd == "L1") {
         linefeeds_ = true;
         return "OK";
-    } else if (cmd.substr(0, 2) == "SH") { // Set Header (e.g. ATSH 7E0)
+    } else if (cmd.length() >= 2 && cmd.substr(0, 2) == "SH") { // Set Header (e.g. ATSH 7E0)
         String hexId = cmd.substr(2);
         unsigned int id;
-        if (sscanf(hexId.c_str(), "%x", &id) == 1) {
+        if (std::sscanf(hexId.c_str(), "%x", &id) == 1) {
             headerId_ = (uint32)id;
             isExtendedId_ = (hexId.length() > 3);
             return "OK";
         }
         return "?";
-    } else if (cmd.substr(0, 2) == "SP") { // Set Protocol
+    } else if (cmd.length() >= 2 && cmd.substr(0, 2) == "SP") { // Set Protocol
         return "OK";
     } else if (cmd == "I") {
         return "ELM327 v1.5";
     } else if (cmd == "DP") {
         return "AUTO, CAN (11/500)";
     }
-    return "OK";
+    return "?";
 }
 
 String ELM327::handleObdRequest(const String& req) {
-    // Check if it's a hex request (Mode + PID, e.g. "010C")
-    if (req.length() >= 2) {
+    // Check if it's a hex request (Mode + PID, e.g. "010C" or "01")
+    if (req.length() == 4 || req.length() == 2) {
         unsigned int mode = 0, pid = 0;
-        int parsed = sscanf(req.c_str(), "%02x%02x", &mode, &pid);
+        int32 parsed = (int32)std::sscanf(req.c_str(), "%02x%02x", &mode, &pid);
         
         if (parsed >= 1) {
             nextFrame_.id = headerId_;
             nextFrame_.dlc = 8;
+            nextFrame_.isExtended = isExtendedId_;
             std::memset(nextFrame_.data.data(), 0, 8);
             
-            if (parsed == 2) { // Mode + PID
+            if (req.length() == 4) { // Mode + PID
                 nextFrame_.data[0] = 0x02;
                 nextFrame_.data[1] = (uint8)mode;
                 nextFrame_.data[2] = (uint8)pid;
@@ -141,22 +142,38 @@ String ELM327::formatCanResponse(const CanFrame& rx) {
     }
 
     if (match && rx.dlc >= 2) {
+        uint8 pci = rx.data[0];
+        // ISO 15765-2: Single Frame (SF) has upper nibble 0
+        if ((pci & 0xF0) != 0x00) return ""; 
+
+        int32 dataLen = (int32)(pci & 0x0F);
+        if (dataLen < 1 || dataLen > 7) return "";
+
         uint8 rxMode = rx.data[1];
         
         // Response mode is Request mode + 0x40
         if (rxMode == (lastMode_ + 0x40)) {
+            
+            // BT-004: If we requested a specific PID, verify it matches
+            if (lastPid_ != 0xFF && dataLen >= 2 && rx.data[2] != lastPid_) {
+                return "";
+            }
+
             char buf[128];
-            int offset = 0;
+            int32 offset = 0;
 
             if (showHeaders_) {
-                offset += snprintf(buf + offset, sizeof(buf) - offset, "%03X ", rx.id);
+                if (rx.isExtended) {
+                    offset += std::snprintf(buf + offset, sizeof(buf) - offset, "%08X ", rx.id);
+                } else {
+                    offset += std::snprintf(buf + offset, sizeof(buf) - offset, "%03X ", rx.id);
+                }
             }
 
             // Standard ELM format: Space separated hex bytes
-            // Note: Data[0] is length in ISO 15765-2
-            int dataLen = rx.data[0];
-            for (int i = 0; i < dataLen && (i + 1) < 8; i++) {
-                offset += snprintf(buf + offset, sizeof(buf) - offset, "%02X ", rx.data[i + 1]);
+            // Starting from data[1] (Service/Mode)
+            for (int32 i = 0; i < dataLen && (i + 1) < 8; i++) {
+                offset += std::snprintf(buf + offset, sizeof(buf) - offset, "%02X ", rx.data[i + 1]);
             }
             
             waitingForResponse_ = false;

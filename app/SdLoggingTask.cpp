@@ -1,3 +1,4 @@
+#include "SdLoggingTask.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -45,14 +46,24 @@ void sdLoggingTask(void* pvParameters) {
         // Wait for decoded data from OBD Task
         if (xQueueReceive(obdDataQueue, &data, portMAX_DELAY) == pdTRUE) {
             // Persist to SD Card
-            sdLogger.logData(data);
-            
-            // Periodically sync/flush to avoid data loss
-            static uint32 lastSync = 0;
-            uint32 now = to_ms_since_boot(get_absolute_time());
-            if (now - lastSync > 5000) { // Every 5 seconds
-                sdLogger.sync();
-                lastSync = now;
+            if (sdLogger.isInitialized() && sdLogger.isFileOpen()) {
+                sdLogger.logData(data);
+                
+                // Periodically sync/flush to avoid data loss
+                static uint32 lastSync = 0;
+                uint32 now = to_ms_since_boot(get_absolute_time());
+                if (now - lastSync > 5000) { // Every 5 seconds
+                    sdLogger.sync();
+                    lastSync = now;
+                }
+            } else {
+                // Rate-limited warning for silent failures
+                static uint32 lastWarn = 0;
+                uint32 now = to_ms_since_boot(get_absolute_time());
+                if (now - lastWarn > 10000) { // Every 10 seconds
+                    Logger::instance().log(LogLevel::WARN, "SD Task: Dropping data (SD not ready)");
+                    lastWarn = now;
+                }
             }
         }
     }

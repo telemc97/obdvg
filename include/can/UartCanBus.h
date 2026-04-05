@@ -50,7 +50,7 @@ class UartCanBus {
     private:
         uart_inst_t* uart_;
         char rxBuf_[32]{};
-        int idx_ = 0;
+        int32 idx_ = 0;
 };
 
 #endif //OBDVG_UARTCANBUS_H
