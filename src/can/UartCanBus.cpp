@@ -15,6 +15,10 @@ UartCanBus::UartCanBus(uart_inst_t* uart, const uint32 baud)
 }
 
 bool UartCanBus::send(const CanFrame& frame) {
+    if (frame.dlc > 8) {
+        return false; // DLC too large, would overflow buffer
+    }
+
     char buffer[32];
     int32 len;
     
@@ -48,7 +52,7 @@ bool UartCanBus::receive(CanFrame& frame) {
             rxBuf_[idx_] = '\0';
             idx_ = 0;
 
-            if (strlen(rxBuf_) < 5) return false;
+            if (std::strlen(rxBuf_) < 5) return false;
 
             char type = rxBuf_[0];
             if (type == 't' || type == 'T') {
@@ -58,7 +62,7 @@ bool UartCanBus::receive(CanFrame& frame) {
                 // Parse ID and DLC
                 char idStr[9] = {0};
                 std::memcpy(idStr, rxBuf_ + 1, idLen);
-                unsigned int id, dlc;
+                uint32 id, dlc;
                 if (std::sscanf(idStr, "%X", &id) != 1) return false;
                 if (std::sscanf(rxBuf_ + 1 + idLen, "%1X", &dlc) != 1) return false;
                 
@@ -69,11 +73,11 @@ bool UartCanBus::receive(CanFrame& frame) {
                 if (std::strlen(rxBuf_) != (uint32)(1 + idLen + 1 + frame.dlc * 2)) return false;
 
                 for (int32 i = 0; i < frame.dlc; i++) {
-                    unsigned int val;
+                    uint32 val;
                     if (std::sscanf(rxBuf_ + 1 + idLen + 1 + i * 2, "%2X", &val) != 1) {
                         return false; // Invalid hex data
                     }
-                    frame.data[i] = static_cast<uint8>(val);
+                    frame.data[i] = (uint8)val;
                 }
                 return true;
             }
