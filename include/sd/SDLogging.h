@@ -40,12 +40,23 @@ public:
     void closeLogFile();
 
     /**
-     * @brief Flushes data to the SD card to prevent data loss.
-     */
+    * @brief Flushes data to the SD card to prevent data loss.
+    */
     void sync();
 
-private:
-    bool is_initialized_ = false;
+    /**
+    * @brief Checks if the SD card is initialized.
+    * @return True if initialized.
+    */
+    bool isInitialized() const { return is_initialized_; }
+
+    /**
+    * @brief Checks if a log file is currently open.
+    * @return True if a file is open.
+    */
+    bool isFileOpen() const { return is_file_open_; }
+
+    private:    bool is_initialized_ = false;
     bool is_file_open_ = false;
     
     FIL file_;
