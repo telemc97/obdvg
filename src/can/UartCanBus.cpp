@@ -16,13 +16,20 @@ UartCanBus::UartCanBus(uart_inst_t* uart, const uint32 baud)
 
 bool UartCanBus::send(const CanFrame& frame) {
     char buffer[32];
-    int len = snprintf(buffer, sizeof(buffer), "t%03X%d", frame.id, frame.dlc);
+    int32 len;
+    
+    if (frame.isExtended) {
+        len = std::snprintf(buffer, sizeof(buffer), "T%08X%d", frame.id, (int32)frame.dlc);
+    } else {
+        len = std::snprintf(buffer, sizeof(buffer), "t%03X%d", frame.id, (int32)frame.dlc);
+    }
+    
     if (len < 0) {
         return false; // Encoding error
     }
 
-    for (int i = 0; i < frame.dlc; i++) {
-        int result = snprintf(buffer + len, sizeof(buffer) - len, "%02X", frame.data[i]);
+    for (int32 i = 0; i < frame.dlc; i++) {
+        int32 result = std::snprintf(buffer + len, sizeof(buffer) - len, "%02X", frame.data[i]);
         if (result < 0) {
             return false; // Encoding error
         }
@@ -41,18 +48,29 @@ bool UartCanBus::receive(CanFrame& frame) {
             rxBuf_[idx_] = '\0';
             idx_ = 0;
 
-            if (rxBuf_[0] == 't' && strlen(rxBuf_) >= 5) {
-                if (sscanf(rxBuf_ + 1, "%3X%1hhu", &frame.id, &frame.dlc) != 2 || frame.dlc > 8) {
-                    return false; // Invalid format or DLC
-                }
+            if (strlen(rxBuf_) < 5) return false;
 
-                if (strlen(rxBuf_) != 5 + frame.dlc * 2) {
-                    return false; // Incorrect length
-                }
+            char type = rxBuf_[0];
+            if (type == 't' || type == 'T') {
+                frame.isExtended = (type == 'T');
+                int32 idLen = frame.isExtended ? 8 : 3;
+                
+                // Parse ID and DLC
+                char idStr[9] = {0};
+                std::memcpy(idStr, rxBuf_ + 1, idLen);
+                unsigned int id, dlc;
+                if (std::sscanf(idStr, "%X", &id) != 1) return false;
+                if (std::sscanf(rxBuf_ + 1 + idLen, "%1X", &dlc) != 1) return false;
+                
+                frame.id = id;
+                frame.dlc = (uint8)dlc;
 
-                for (int i = 0; i < frame.dlc; i++) {
-                    unsigned val;
-                    if (sscanf(rxBuf_ + 5 + i * 2, "%2X", &val) != 1) {
+                if (frame.dlc > 8) return false;
+                if (std::strlen(rxBuf_) != (uint32)(1 + idLen + 1 + frame.dlc * 2)) return false;
+
+                for (int32 i = 0; i < frame.dlc; i++) {
+                    unsigned int val;
+                    if (std::sscanf(rxBuf_ + 1 + idLen + 1 + i * 2, "%2X", &val) != 1) {
                         return false; // Invalid hex data
                     }
                     frame.data[i] = static_cast<uint8>(val);
@@ -71,15 +89,15 @@ bool UartCanBus::receive(CanFrame& frame) {
 
 bool UartCanBus::isConnected() const {
     const char* cmd = "AT\r";
-    uart_write_blocking(uart_, (const uint8*)cmd, strlen(cmd));
+    uart_write_blocking(uart_, (const uint8*)cmd, std::strlen(cmd));
 
     char resp[10];
-    int i = 0;
+    int32 i = 0;
     uint32 start = to_ms_since_boot(get_absolute_time());
-    while(to_ms_since_boot(get_absolute_time()) - start < 100) { // 100ms timeout
+    while(to_ms_since_boot(get_absolute_time()) - start < (uint32)Config::CAN_UART_TIMEOUT_MS) { 
         if (uart_is_readable(uart_)) {
             char c = uart_getc(uart_);
-            if (c == '\r' || i >= sizeof(resp)-1) {
+            if (c == '\r' || i >= (int32)sizeof(resp)-1) {
                 break;
             }
             resp[i++] = c;
@@ -87,5 +105,5 @@ bool UartCanBus::isConnected() const {
     }
     resp[i] = '\0';
 
-    return strstr(resp, "OK") != nullptr;
+    return std::strstr(resp, "OK") != nullptr;
 }
