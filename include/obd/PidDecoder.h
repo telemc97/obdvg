@@ -23,17 +23,17 @@ public:
     static float32 decodeFuelTrim(uint8 const A) { return (A - 128.0f) * 100.0f / 128.0f; }
 
     // 0x0A - Fuel Pressure (kPa)
-    static uint8 decodeFuelPressure(uint8 const A) { return A * 3; }
+    static float32 decodeFuelPressure(uint8 const A) { return static_cast<float32>(A) * 3.0f; }
 
     // 0x0B - Intake Manifold Absolute Pressure (kPa)
     // 0x33 - Barometric Pressure (kPa)
-    static uint8 decodePressure(uint8 const A) { return A; }
+    static float32 decodePressure(uint8 const A) { return static_cast<float32>(A); }
 
     // 0x0C - Engine RPM (rpm)
     static float32 decodeRpm(uint8 const A, uint8 const B) { return ((A << 8) | B) / 4.0f; }
 
     // 0x0D - Vehicle Speed (km/h)
-    static uint8 decodeSpeed(uint8 const A) { return A; }
+    static float32 decodeSpeed(uint8 const A) { return static_cast<float32>(A); }
 
     // 0x0E - Timing Advance (°)
     static float32 decodeTimingAdvance(uint8 const A) { return (A - 128.0f) / 2.0f; }
@@ -60,11 +60,11 @@ public:
     // 0x1F - Run time since engine start (sec)
     // 0x4D - Time run with MIL on (min)
     // 0x4E - Time since trouble codes cleared (min)
-    static uint16 decodeTime(uint8 const A, uint8 const B) { return (A << 8) | B; }
+    static float32 decodeTime(uint8 const A, uint8 const B) { return static_cast<float32>((A << 8) | B); }
 
     // 0x21 - Distance Traveled with MIL on (km)
     // 0x31 - Distance traveled since codes cleared (km)
-    static uint16 decodeDistance(uint8 const A, uint8 const B) { return (A << 8) | B; }
+    static float32 decodeDistance(uint8 const A, uint8 const B) { return static_cast<float32>((A << 8) | B); }
 
     // 0x22 - Fuel Rail Pressure (Relative to manifold vacuum) (kPa)
     static float32 decodeFuelRailPressureRel(uint8 const A, uint8 const B) { return ((A << 8) | B) * 0.079f; }
@@ -74,10 +74,10 @@ public:
     static float32 decodeFuelRailGaugePressure(uint8 const A, uint8 const B) { return ((A << 8) | B) * 10.0f; }
 
     // 0x30 - Warm-ups since codes cleared (count)
-    static uint8 decodeWarmups(uint8 const A) { return A; }
+    static float32 decodeWarmups(uint8 const A) { return static_cast<float32>(A); }
 
     // 0x32 - Evap. System Vapor Pressure (Pa)
-    static float32 decodeEvapVaporPressure(uint8 const A, uint8 const B) { return static_cast<int16>((A << 8) | B) / 4.0f; }
+    static float32 decodeEvapVaporPressure(uint8 const A, uint8 const B) { return static_cast<float32>(static_cast<int16>((A << 8) | B)) / 4.0f; }
 
     // 0x3C - Catalyst Temperature: Bank 1, Sensor 1 (°C)
     // ...
@@ -110,10 +110,11 @@ public:
     // 0x61 - Driver's Demand Engine - Percent Torque (%)
     // 0x62 - Actual Engine - Percent Torque (%)
     // 0x64 - Engine Percent Torque Data (%)
-    static float32 decodeTorquePercentage(uint8 const A) { return static_cast<int8>(A) - 125.0f; }
+    static float32 decodeTorquePercentage(uint8 const A) { return static_cast<float32>(A) - 125.0f; }
 
     // 0x63 - Engine Reference Torque (Nm)
-    static uint16 decodeReferenceTorque(uint8 const A, uint8 const B) { return (A << 8) | B; }
+    static float32 decodeReferenceTorque(uint8 const A, uint8 const B) { return static_cast<float32>((A << 8) | B); }
+};
 };
 
 #endif //OBDVG_PIDDECODER_H
