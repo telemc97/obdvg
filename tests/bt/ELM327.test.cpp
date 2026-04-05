@@ -30,6 +30,37 @@ TEST_F(ELM327Test, UnknownATCommand) {
     EXPECT_TRUE(resp.find("?") != String::npos);
 }
 
+TEST_F(ELM327Test, HandleMoreATCommands) {
+    elm.processInput("ATE0"); // Turn off echo for cleaner assertions
+    EXPECT_EQ(elm.processInput("ATH0"), "OK\r>");
+    EXPECT_EQ(elm.processInput("ATH1"), "OK\r>");
+    EXPECT_EQ(elm.processInput("ATL0"), "OK\r>");
+    EXPECT_EQ(elm.processInput("ATL1"), "OK\r>");
+    EXPECT_EQ(elm.processInput("ATDP"), "AUTO, CAN (11/500)\r>");
+    EXPECT_EQ(elm.processInput("ATSP0"), "OK\r>"); // ATSP anything returns OK
+    EXPECT_EQ(elm.processInput("ATI"), "ELM327 v1.5\r>");
+}
+
+TEST_F(ELM327Test, HandleATSH) {
+    elm.processInput("ATE0"); // Turn off echo
+    // Standard ID
+    EXPECT_EQ(elm.processInput("ATSH7E0"), "OK\r>");
+    // Extended ID
+    EXPECT_EQ(elm.processInput("ATSH18DAF110"), "OK\r>");
+    // Invalid
+    EXPECT_TRUE(elm.processInput("ATSHZZZ").find("?") != String::npos);
+}
+
+TEST_F(ELM327Test, ObdRequestModeOnly) {
+    // Mode 04 (Clear DTCs) or Mode 03 (Show DTCs)
+    elm.processInput("03");
+    
+    CanFrame tx;
+    EXPECT_TRUE(elm.hasPendingCanRequest(tx));
+    EXPECT_EQ(tx.data[0], 0x01); // Length 1
+    EXPECT_EQ(tx.data[1], 0x03); // Mode 03
+}
+
 TEST_F(ELM327Test, ObdRequestParsing) {
     // Mode 01 PID 0C (RPM)
     elm.processInput("010C");

@@ -123,7 +123,7 @@ graph TD
 ---
 The project includes a comprehensive suite of unit tests that run on the **Host Machine** (macOS/Linux) using GoogleTest.
 
-**Current Test Coverage:** ~59.4% (Logic & Drivers)
+**Current Test Coverage:** ~90.4% (Logic & Drivers)
 
 To run all tests:
 ```bash
