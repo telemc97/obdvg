@@ -1,3 +1,4 @@
+#include "ObdTask.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -31,7 +32,7 @@ void obdTask(void* pvParameters) {
     }
     Logger::instance().log("OBD Task: CAN adapter connected!");
 
-    ObdLogMessage currentData = {};
+    ObdLogMessage currentData; // Use default constructor for NaN initialization
     CanFrame frame = {};
     static uint8 pollIdx = 0;
 
@@ -56,7 +57,7 @@ void obdTask(void* pvParameters) {
         }
 
         // 2. Read incoming frames from the vehicle
-        if (!Config::TEST_SIMULATOR_ENABLED && can_bus.receive(frame)) {
+        while (!Config::TEST_SIMULATOR_ENABLED && can_bus.receive(frame)) {
             
             // STREAM 1: Forward RAW frame to Bluetooth Task (ELM327 Emulation)
             xQueueSend(canRxQueue, &frame, 0);
@@ -91,7 +92,7 @@ void obdTask(void* pvParameters) {
         // 3. Periodic Background Polling (Round-Robin from Config Table)
         static uint32 lastPoll = 0;
         uint32 now = to_ms_since_boot(get_absolute_time());
-        if (now - lastPoll > Config::OBD_TASK_DELAY_MS) {
+        if (!Config::TEST_SIMULATOR_ENABLED && (now - lastPoll > Config::OBD_TASK_DELAY_MS)) {
             lastPoll = now;
             
             CanFrame req;

@@ -17,9 +17,9 @@
 #include "util/Logger.h"
 #include "util/Utils.h"
 
-#include "ObdTask.cpp"
-#include "BluetoothTask.cpp"
-#include "SdLoggingTask.cpp"
+#include "ObdTask.h"
+#include "BluetoothTask.h"
+#include "SdLoggingTask.h"
 
 // Global Queues
 QueueHandle_t obdDataQueue = nullptr;
@@ -46,9 +46,25 @@ int main() {
     }
 
     // 3. Create Tasks
-    xTaskCreate(obdTask, "OBD_TASK", Config::OBD_TASK_STACK_SIZE, nullptr, Config::OBD_TASK_PRIORITY, nullptr);
-    xTaskCreate(bluetoothTask, "BT_TASK", Config::BT_TASK_STACK_SIZE, nullptr, Config::BT_TASK_PRIORITY, nullptr);
-    xTaskCreate(sdLoggingTask, "SD_LOG_TASK", Config::LOGGING_TASK_STACK_SIZE, nullptr, Config::LOGGING_TASK_PRIORITY, nullptr);
+    BaseType_t status;
+    
+    status = xTaskCreate(obdTask, "OBD_TASK", Config::OBD_TASK_STACK_SIZE, nullptr, Config::OBD_TASK_PRIORITY, nullptr);
+    if (status != pdPASS) {
+        Logger::instance().log("CRITICAL: Failed to create OBD Task");
+        return -1;
+    }
+
+    status = xTaskCreate(bluetoothTask, "BT_TASK", Config::BT_TASK_STACK_SIZE, nullptr, Config::BT_TASK_PRIORITY, nullptr);
+    if (status != pdPASS) {
+        Logger::instance().log("CRITICAL: Failed to create BT Task");
+        return -1;
+    }
+
+    status = xTaskCreate(sdLoggingTask, "SD_LOG_TASK", Config::LOGGING_TASK_STACK_SIZE, nullptr, Config::LOGGING_TASK_PRIORITY, nullptr);
+    if (status != pdPASS) {
+        Logger::instance().log("CRITICAL: Failed to create SD Logging Task");
+        return -1;
+    }
 
     // 4. Start Scheduler
     vTaskStartScheduler();
