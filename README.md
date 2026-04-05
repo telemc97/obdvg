@@ -117,3 +117,18 @@ graph TD
 3.  Configure: `cmake ..`
 4.  Build: `make -j4`
 5.  Flash: Copy the resulting `obdvg.uf2` to the Pico in bootloader mode.
+
+### Testing
+
+---
+The project includes a comprehensive suite of unit tests that run on the **Host Machine** (macOS/Linux) using GoogleTest.
+
+**Current Test Coverage:** ~90.4% (Logic & Drivers)
+
+To run all tests:
+```bash
+cmake -S tests -B build_tests
+cmake --build build_tests
+./build_tests/obdvg_unit_tests
+```
+For more details on the testing strategy and mocking infrastructure, see [tests/TESTING.md](tests/TESTING.md).

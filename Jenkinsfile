@@ -7,6 +7,18 @@ pipeline {
 
     stages {
 
+        stage('Clean Workspace') {
+            when {
+                expression { params.CLEAN_WORKSPACE }
+            }
+            steps {
+                script {
+                    echo "Cleaning build directories..."
+                    sh 'rm -rf build build_tests'
+                }
+            }
+        }
+
         stage('Initialize Submodules') {
             steps {
                 script {
@@ -32,6 +44,17 @@ pipeline {
             steps {
                 script {
                     sh 'cp ./libs/pico-sdk/external/pico_sdk_import.cmake ./'
+                }
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                script {
+                    sh 'mkdir -p build_tests'
+                    sh 'cmake -S tests -B build_tests'
+                    sh 'cmake --build build_tests'
+                    sh './build_tests/obdvg_unit_tests'
                 }
             }
         }
