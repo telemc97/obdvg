@@ -22,6 +22,8 @@ namespace Config {
     constexpr uint8 SD_SPI_MOSI_PIN = 19;
     constexpr uint8 SD_SPI_MISO_PIN = 16;
     constexpr uint8 SD_SPI_CS_PIN = 17;
+    constexpr uint32 SD_SPI_FREQ_INIT = 100 * 1000;      // 100 kHz
+    constexpr uint32 SD_SPI_FREQ_OP = 30 * 1000 * 1000;  // 30 MHz
     #define SD_SPI_INST spi0
 
     // Bluetooth Related

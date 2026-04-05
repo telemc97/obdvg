@@ -4,6 +4,8 @@
 #include "Types.h"
 #include "obd/ObdLogMessage.h"
 #include "ff.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 /**
  * @class SDLogging
@@ -56,13 +58,15 @@ public:
     */
     bool isFileOpen() const { return is_file_open_; }
 
-    private:    bool is_initialized_ = false;
+private:
+    bool is_initialized_ = false;
     bool is_file_open_ = false;
     
     FIL file_;
     FATFS fs_;
     
     String current_filename_;
+    SemaphoreHandle_t mutex_;
 };
 
 #endif //OBDVG_SDLOGGING_H
