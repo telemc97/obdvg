@@ -115,6 +115,5 @@ public:
     // 0x63 - Engine Reference Torque (Nm)
     static float32 decodeReferenceTorque(uint8 const A, uint8 const B) { return static_cast<float32>((A << 8) | B); }
 };
-};
 
 #endif //OBDVG_PIDDECODER_H
